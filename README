@@ -8,3 +8,13 @@ This provides infrastructure for themes in Flask.
 Installation
 
 pip install -e git://github.com/drewlustro/spirits.git#egg=spirits
+
+Documentation
+
+pip install sphinx
+pip install -e git://github.com/drewlustro/spirits.git#egg=spirits
+git clone git://github.com/drewlustro/spirits.git
+cd spirits/docs
+make html
+
+The documentation will be in generated in a directory called _build/
