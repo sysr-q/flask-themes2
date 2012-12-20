@@ -406,15 +406,14 @@ def global_theme_static(ctx, filename, external=False):
 
 
 @contextfunction
-def global_theme_get_info(ctx, attribute_name):
+def global_theme_get_info(ctx, attribute_name, fallback=''):
     theme = get_theme(active_theme(ctx))
-    print theme
     try:
         info = theme.getattr(attribute_name)
         return info
     except AttributeError:
         pass
-    return theme.options.get(attribute_name, None)
+    return theme.options.get(attribute_name, fallback)
 
 
 def static_file_url(theme, filename, external=False):
