@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-flaskext.themes
+spirits
 ===============
 This provides infrastructure for theming support in your Flask applications.
 It takes care of:
@@ -10,7 +10,7 @@ It takes care of:
 - Serving their static media
 - Letting themes reference their templates and static media
 
-:copyright: 2010 Matthew "LeafStorm" Frazier
+:copyright: 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier
 :license:   MIT/X11, see LICENSE for details
 """
 from __future__ import with_statement

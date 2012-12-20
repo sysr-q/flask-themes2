@@ -1,5 +1,5 @@
 """
-Flask-Themes
+Spirits
 ------------
 
 A fork of the Flask-Themes package for Flask maintained by Drew Lustro.
@@ -7,7 +7,7 @@ Originally by Matthew "LeafStorm" Frazier <leafstormrush@gmail.com>
 
 ````
 
-Flask-Themes provides infrastructure for theming support in Flask
+Spirits provides infrastructure for theming support in Flask
 applications. It takes care of:
 
 - Loading themes
@@ -17,12 +17,9 @@ applications. It takes care of:
 
 Links
 `````
-* `documentation <http://packages.python.org/Flask-Themes>`_
-* `development version
-  <http://bitbucket.org/leafstorm/flask-themes/get/tip.gz#egg=Flask-Themes-dev>`_
-
-
+* `documentation <https://github.com/drewlustro/spirits>`
 """
+
 from setuptools import setup
 import sys
 requires = ['Flask>=0.6']
@@ -30,15 +27,15 @@ if sys.version_info < (2, 6):
     requires.append('simplejson')
 
 setup(
-    name='Flask-Themes',
+    name='Spirits',
     version='0.1.5',
-    url='https://github.com/drewlustro/flask-themes.git',
+    url='https://github.com/drewlustro/spirits',
     license='MIT',
     author='Drew Lustro',
-    author_email='leafstormrush@gmail.com',
+    author_email='drewlustro@gmail.com',
     description='Provides infrastructure for theming Flask applications',
     long_description=__doc__,
-    packages=['flask_themes'],
+    packages=['spirits'],
     zip_safe=False,
     platforms='any',
     install_requires=requires,

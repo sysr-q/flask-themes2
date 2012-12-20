@@ -1,4 +1,4 @@
-Flask-Themes
+Spirits (for Flask)
 
 A fork of the Flask-Themes package for Flask maintained by Drew Lustro.
 Originally by Matthew "LeafStorm" Frazier <leafstormrush@gmail.com>
@@ -7,4 +7,4 @@ This provides infrastructure for themes in Flask.
 
 Installation
 
-pip install -e git://github.com/drewlustro/flask-themes.git#egg=flask_themes
+pip install -e git://github.com/drewlustro/spirits.git#egg=spirits
