@@ -376,6 +376,7 @@ def setup_themes(app, loaders=None, app_identifier=None,
     manager_cls(app, app_identifier, loaders=loaders)
     app.jinja_env.globals['theme'] = global_theme_template
     app.jinja_env.globals['theme_static'] = global_theme_static
+    app.jinja_env.globals['theme_get_info'] = global_theme_get_info
     app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
 
 
@@ -402,6 +403,18 @@ def global_theme_template(ctx, templatename, fallback=True):
 def global_theme_static(ctx, filename, external=False):
     theme = active_theme(ctx)
     return static_file_url(theme, filename, external)
+
+
+@contextfunction
+def global_theme_get_info(ctx, attribute_name):
+    theme = get_theme(active_theme(ctx))
+    print theme
+    try:
+        info = theme.getattr(attribute_name)
+        return info
+    except AttributeError:
+        pass
+    return theme.options.get(attribute_name, None)
 
 
 def static_file_url(theme, filename, external=False):
