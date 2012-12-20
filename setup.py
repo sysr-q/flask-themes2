@@ -1,6 +1,12 @@
 """
 Flask-Themes
 ------------
+
+A fork of the Flask-Themes package for Flask maintained by Drew Lustro.
+Originally by Matthew "LeafStorm" Frazier <leafstormrush@gmail.com>
+
+````
+
 Flask-Themes provides infrastructure for theming support in Flask
 applications. It takes care of:
 
@@ -25,10 +31,10 @@ if sys.version_info < (2, 6):
 
 setup(
     name='Flask-Themes',
-    version='0.1.4',
-    url='http://bitbucket.org/leafstorm/flask-themes/',
+    version='0.1.5',
+    url='https://github.com/drewlustro/flask-themes.git',
     license='MIT',
-    author='Matthew "LeafStorm" Frazier',
+    author='Drew Lustro',
     author_email='leafstormrush@gmail.com',
     description='Provides infrastructure for theming Flask applications',
     long_description=__doc__,

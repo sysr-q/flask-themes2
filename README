@@ -1,10 +1,10 @@
 Flask-Themes
 
+A fork of the Flask-Themes package for Flask maintained by Drew Lustro.
+Originally by Matthew "LeafStorm" Frazier <leafstormrush@gmail.com>
+
 This provides infrastructure for themes in Flask.
 
-Installation    'pip install Flask-Themes' or
-                'easy_install Flask-Themes'
-Documentation   http://packages.python.org/Flask-Themes
-                to build: cd to 'docs' and 'make html'
-Source code     http://bitbucket.org/leafstorm/flask-themes/
-Tests           run 'nosetests'
+Installation
+
+pip install -e git://github.com/drewlustro/flask-themes.git#egg=flask_themes
