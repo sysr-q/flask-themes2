@@ -2,7 +2,7 @@
 Spirits
 ------------
 
-A fork of the Flask-Themes package for Flask maintained by Drew Lustro.
+A fork of the Spirits package for Flask maintained by Drew Lustro.
 Originally by Matthew "LeafStorm" Frazier <leafstormrush@gmail.com>
 
 ````

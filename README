@@ -1,6 +1,6 @@
 Spirits (for Flask)
 
-A fork of the Flask-Themes package for Flask maintained by Drew Lustro.
+A fork of the Spirits package for Flask maintained by Drew Lustro.
 Originally by Matthew "LeafStorm" Frazier <leafstormrush@gmail.com>
 
 This provides infrastructure for themes in Flask.

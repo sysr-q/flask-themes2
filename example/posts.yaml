@@ -1,5 +1,5 @@
 # example posts for Theme Sandbox
-# part of Flask-Themes
+# part of Spirits
 # copyright 2010 Matthew "LeafStorm" Frazier
 # licensed under the MIT/X11 license (see LICENSE for details)
 
@@ -49,9 +49,9 @@ body: >
     
     One person asked if it was inspired by Deliverance. I looked it up, and
     thought that it looked confusing. But basically, the differences are that
-    Flask-Themes is for single applications, Deliverance is for multiple
-    applications. Flask-Themes works at the template level, Deliverance works
-    at the HTML level. Flask-Themes doesn't deal with HTML/XML, while
+    Spirits is for single applications, Deliverance is for multiple
+    applications. Spirits works at the template level, Deliverance works
+    at the HTML level. Spirits doesn't deal with HTML/XML, while
     Deliverance does.
 
 ---

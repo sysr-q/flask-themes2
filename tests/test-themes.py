@@ -1,17 +1,17 @@
 """
 test-themes.py
 ==============
-This tests the Flask-Themes extension.
+This tests the Spirits extension.
 """
 from __future__ import with_statement
 import os.path
 from flask import Flask, url_for, render_template
-from flask.ext.themes import (setup_themes, Theme, load_themes_from,
+from spirits import (setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
     template_exists, themes_mod, render_theme_template, get_theme,
     get_themes_list, USING_BLUEPRINTS)
 if USING_BLUEPRINTS:
-    from flask.ext.themes import themes_blueprint
+    from spirits import themes_blueprint
 from jinja2 import FileSystemLoader
 from operator import attrgetter
 

@@ -10,7 +10,7 @@ A sandbox to play around with themes in.
 """
 import yaml
 from flask import (Flask, url_for, redirect, session, Markup, abort)
-from flask.ext.themes import (setup_themes, render_theme_template,
+from spirits import (setup_themes, render_theme_template,
                              get_themes_list)
 from operator import attrgetter
 
@@ -65,7 +65,7 @@ with app.open_resource('posts.yaml') as fd:
     store.add_posts(post_data)
 
 
-ABOUT_TEXT = Markup('<p>This is a demonstration of Flask-Themes.</p>')
+ABOUT_TEXT = Markup('<p>This is a demonstration of Spirits.</p>')
 
 
 # themes
