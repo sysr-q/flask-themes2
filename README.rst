@@ -6,7 +6,7 @@ Flask-Themes2
 
 Flask-Themes2 is a fork of Spirits, which is in turn a fork of Flask-Themes.
 
-- `Flask-Themes2 <GitHub>`_ maintained by Christopher "plausibility" Carter
+- `Flask-Themes2 <https://github.com/plausibility/flask-themes2>`_ maintained by Christopher "plausibility" Carter
 - `Spirits <https://github.com/drewlustro/spirits>`_ maintained by Drew Lustro
 - `Flask-Themes <https://bitbucket.org/leafstorm/flask-themes>`_ by Matthew "LeafStorm" Frazier
 
@@ -19,11 +19,13 @@ Installation
 ------------
 
 To install normally:
+
 .. code-block:: sh
 
     $ pip install flask-themes2
 
 To install the development (latest) version:
+
 .. code-block:: sh
 
     $ pip install -e git://github.com/plausibility/flask-themes2.git#egg=flask_themes2-dev
