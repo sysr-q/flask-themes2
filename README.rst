@@ -33,7 +33,7 @@ To install the development (latest) version:
 Documentation
 -------------
 
-The documentation is on the `Flask-Themes docs <docs>`_
+The documentation is on the Flask-Themes2 `docs`_.
 
 Development
 -----------
