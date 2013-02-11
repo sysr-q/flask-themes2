@@ -19,14 +19,14 @@ should look something like this:
 
 .. sourcecode:: text
 
-    my_theme/
-        info.json
-        license.txt
-        templates/
-            layout.html
-            index.html
-        static/
-            style.css
+    my_theme
+    ├── info.json
+    ├── license.txt
+    ├── static
+    │   └── style.css
+    └── templates
+        ├── layout.html
+        └── index.html
 
 The ``info.json`` file contains the theme's metadata, so that the application
 can provide a nice switching interface if necessary. ``license.txt`` is
@@ -44,7 +44,7 @@ Writing Templates
 Flask uses the Jinja2 template engine, so you should read `its documentation`_
 to learn about the actual syntax of the templates.
 
-All templates loaded from a theme will have a global function named `theme`
+All templates loaded from a theme will have a global function named ``theme``
 available to look up the theme's templates. For example, if you want to
 extend, import, or include another template from your theme, you can use
 ``theme(template_name)``, like this:
@@ -70,7 +70,7 @@ the tag without calling `theme`.
     {% from '_helpers.html' import link_to %}
     {% include '_jquery.html' %}
 
-You can also get the URL for the theme's media files with the `theme_static`
+You can also get the URL for the theme's media files with the ``theme_static``
 function:
 
 .. sourcecode:: html+jinja
@@ -153,21 +153,35 @@ Tips for Theme Writers
 
 Using Themes in Your Application
 ================================
-To set up your application to use themes, you need to use the
-`setup_themes` function. It doesn't rely on your application already being
-configured, so you can call it whenever is convenient. It does three things:
+To set up your application to use themes, you need to use ``flask.ext.themes2.Themes``,
+in one of two ways:
 
-* Adds a `ThemeManager` instance to your application as ``app.theme_manager``.
-* Registers the `theme` and `theme_static` globals with the Jinja2
+.. code-block:: python
+
+    # The first way
+    app = Flask(__name__)
+    Themes(app, app_identifer="...")
+
+    # The second way
+    app = Flask(__name__)
+    t = Themes()
+    t.init_themes(app, app_identifer="...")
+
+The first is simply a quicker way of the second, as it will automatically call ``init_themes`` on your app.
+
+This does three things:
+
+* Adds a ``ThemeManager`` instance to your application as ``app.theme_manager``.
+* Registers the ``theme`` and ``theme_static`` globals with the Jinja2
   environment.
-* Registers the `_themes` module or blueprint (depending on the Flask version)
+* Registers the ``_themes`` module or blueprint (depending on the Flask version)
   to your application, by default with the URL prefix ``/_themes`` (you can
   change it).
 
 .. warning::
 
    Since the "Blueprints" mechanism of Flask 0.7 causes headaches in module
-   compatibility mode, `setup_themes` will automatically register `_themes`
+   compatibility mode, ``init_themes`` will automatically register ``_themes``
    as a blueprint and not as a module if possible. If this causes headaches
    with your application, then you need to either (a) upgrade to Flask 0.7 or
    (b) set ``Flask<0.7`` in your requirements.txt file.
@@ -175,19 +189,19 @@ configured, so you can call it whenever is convenient. It does three things:
 
 Theme Loaders
 -------------
-`setup_themes` takes a few arguments, but the one you will probably be using
-most is `loaders`, which is a list of theme loaders to use (in order) to find
+``init_themes`` takes a few arguments, but the one you will probably be using
+most is ``loaders``, which is a list of theme loaders to use (in order) to find
 themes. The default theme loaders are:
 
-* `packaged_themes_loader`, which looks in your application's ``themes``
+* ``packaged_themes_loader``, which looks in your application's ``themes``
   directory for themes (you can use this to ship one or two default themes
   with your application)
-* `theme_paths_loader`, which looks at the `THEME_PATHS` configuration
+* ``theme_paths_loader``, which looks at the `THEME_PATHS` configuration
   setting and loads themes from each folder therein
 
 It's easy to write your own loaders, though - a loader is just a callable that
-takes an application instance and returns an iterable of `Theme` instances.
-You can use the `load_themes_from` helper function to yield all the valid
+takes an application instance and returns an iterable of ``Theme`` instances.
+You can use the ``load_themes_from`` helper function to yield all the valid
 themes contained within a folder. For example, if your app uses an "instance
 folder" like `Zine`_ that can have a "themes" directory::
 
@@ -204,18 +218,18 @@ folder" like `Zine`_ that can have a "themes" directory::
 Rendering Templates
 -------------------
 Once you have the themes set up, you can call in to the theme machinery with
-`render_theme_template`. It works like `render_template`, but takes a `theme`
-parameter before the template name. Also, `static_file_url` will generate a
+``render_theme_template``. It works like ``render_template``, but takes a ``theme``
+parameter before the template name. Also, ``static_file_url`` will generate a
 URL to the given static file.
 
-When you call `render_theme_template`, it sets the "active template" to the
+When you call ``render_theme_template``, it sets the "active template" to the
 given theme, even if you have to fall back to rendering the application's
 template. That way, if you have a template like ``by_year.html`` that isn't
 defined by the current theme, you can still
 
-* extend (``{% extends theme('layout.html') %}``)
-* include (``{% include theme('archive_header.html') %}``)
-* import (``{% from theme('_helpers.html') import show_post %}``)
+- extend (``{% extends theme('layout.html') %}``)
+- include (``{% include theme('archive_header.html') %}``)
+- import (``{% from theme('_helpers.html') import show_post %}``)
 
 templates defined by the theme. This way, the theme author doesn't have to
 implement every possible template - they can define templates like the layout,
@@ -229,7 +243,9 @@ How exactly you select the theme will vary between applications, so
 Flask-Themes2 doesn't make the decision for you. If your app is any larger than
 a few views, though, you will probably want to provide a helper function that
 selects the theme based on whatever (settings, logged-in user, page) and
-renders the template. For example::
+renders the template. For example:
+
+.. code-block:: python
 
     def get_current_theme():
         if g.user is not None:
@@ -244,10 +260,10 @@ renders the template. For example::
 
 .. warning::
    
-   Make sure that you *only* get `Theme` instances from the theme manager. If
-   you need to create a `Theme` instance manually outside of a theme loader,
+   Make sure that you *only* get ``Theme`` instances from the theme manager. If
+   you need to create a ``Theme`` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
-   load that theme and pass it to `setup_themes`, because if the theme is not
+   load that theme and pass it to ``init_themes``, because if the theme is not
    loaded by the manager, then its templates and static files won't be
    available, which will usually lead to your application breaking.
 
@@ -268,10 +284,13 @@ API Documentation
 =================
 This API documentation is automatically generated from the source code.
 
-.. autoclass:: Theme
-   :members:
+.. autoclass:: Themes
+  :members:
+  :special-members:
+  :exclude-members: __weakref__
 
-.. autofunction:: setup_themes
+.. autoclass:: Theme
+  :members:
 
 .. autofunction:: render_theme_template
 

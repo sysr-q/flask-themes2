@@ -29,3 +29,9 @@ Once the project is worthy, I will upload it to RTD.
     $ make html
 
 The documentation will be in generated in a directory called ``_build/``
+
+Tests (a note)
+--------------
+I've yet to actually add functionality to the tests, so don't dare try them yet.
+
+To quote Dade "ZeroCool" Murphy: ``"Just give me time!"``

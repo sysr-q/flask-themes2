@@ -9,9 +9,11 @@ def long_desc():
     with open('README.rst', 'rb') as f:
         return f.read()
 
+execfile("flask_themes2/version.py")
+
 kw = {
     "name": "Flask-Themes2",
-    "version": "0.1.0",
+    "version": __version__,
     "url": "https://github.com/plausibility/Flask-Themes2",
     "license": "MIT",
     "author": "plausibility",

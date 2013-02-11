@@ -10,7 +10,8 @@ A sandbox to play around with themes in.
 """
 import yaml
 from flask import (Flask, url_for, redirect, session, Markup, abort)
-from flask.ext.themes2 import (setup_themes, render_theme_template, get_themes_list)
+#from flask.ext.themes2 import (setup_themes, render_theme_template, get_themes_list)
+from flask.ext.themes2 import (Themes, render_theme_template, get_themes_list)
 from operator import attrgetter
 
 # default settings
@@ -23,7 +24,7 @@ SECRET_KEY = 'not really secret'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-setup_themes(app, app_identifier='themesandbox')
+Themes(app, app_identifier='themesandbox')
 
 
 # data
@@ -114,6 +115,10 @@ def settheme(ident):
     session['theme'] = ident
     return redirect(url_for('themes'))
 
+@app.route("/refresh")
+def refresh():
+    app.theme_manager.refresh()
+    return redirect(url_for('themes'))
 
 if __name__ == '__main__':
     app.run(debug=True)

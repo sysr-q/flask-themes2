@@ -3,6 +3,31 @@
 # copyright 2013 Christopher Carter, 2010 Matthew "LeafStorm" Frazier
 # licensed under the MIT/X11 license (see LICENSE for details)
 
+slug: additional-rewrites
+created: 2013-11-01 18:00:00
+title: Additional rewrites and forking
+body: >
+    Since LeafStorm hadn't updated Flask-Themes in several years
+    (the last update was in 2011 or so, mind you), it was picked up
+    by a guy named <a href="https://github.com/drewlustro">Drew Lustro</a>
+    under the name <a href="https://github.com/drewlustro/spirits">Spirits</a>.
+
+    Sadly, it didn't really conform to the Flask extension standards, nor was it
+    anywhere to be seen but his GitHub account. So I -- <a href="https://github.com/plausibility">
+    "plausibility"</a> -- forked Spirits, and brought it back to life,
+    cleaning up the base, making it a valid Flask extension, and putting it online, accessible via PyPi.
+
+    For obvious reasons, I renamed it from Spirits to Flask-Themes2, to honor
+    the roots of the project.
+
+    So here we are, in 2013 (or forward, if this isn't removed by someone else),
+    using an up to date theming module, making life easier for developers all over.
+
+    You probably already know this, but you can find Flask-Themes2 at my GitHub repo,
+    <a href="https://github.com/plausibility/Flask-Themes2">plausibility/Flask-Themes2</a>!
+
+---
+
 slug: introduction
 created: 2010-07-01 16:00:00
 title: Introduction
