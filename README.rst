@@ -13,7 +13,7 @@ Installation
 
 .. code-block:: sh
 
-    $ pip install -e git://github.com/plausibility/Flask-Themes2.git#egg=flask_themes2-X.Y.Z
+    $ pip install -e git://github.com/plausibility/flask-themes2.git#egg=flask_themes2-X.Y.Z
 
 Documentation
 -------------
@@ -23,9 +23,9 @@ Once the project is worthy, I will upload it to RTD.
 .. code-block:: sh
 
     $ pip install sphinx
-    $ pip install -e git://github.com/plausibility/Flask-Themes2.git#egg=flask_themes2-X.Y.Z
-    $ git clone git://github.com/plausibility/Flask-Themes2.git
-    $ cd Flask-Themes2/docs
+    $ pip install -e git://github.com/plausibility/flask-themes2.git#egg=flask_themes2-X.Y.Z
+    $ git clone git://github.com/plausibility/flask-themes2.git
+    $ cd flask-themes2/docs
     $ make html
 
 The documentation will be in generated in a directory called ``_build/``

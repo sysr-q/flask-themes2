@@ -14,7 +14,7 @@ execfile("flask_themes2/version.py")
 kw = {
     "name": "Flask-Themes2",
     "version": __version__,
-    "url": "https://github.com/plausibility/Flask-Themes2",
+    "url": "https://github.com/plausibility/flask-themes2",
     "license": "MIT",
     "author": "plausibility",
     "author_email": "chris@gibsonsec.org",
