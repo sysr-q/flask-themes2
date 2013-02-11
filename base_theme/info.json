@@ -7,5 +7,6 @@
     "website":      "http://leafstorm.us/",
     "license":      "Public Domain",
     "preview":      "preview.png",
-    "doctype":      "html5"
+    "doctype":      "html5",
+    "version":      "1.0.0"
 }

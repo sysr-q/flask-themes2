@@ -131,6 +131,11 @@ function:
     ``html5`` to be safe. HTML5 is used by the majority of Flask users, so
     it's best to use it.)
 
+``version``
+    This is simply to make it easier to distinguish between what version
+    of your theme people are using. It's up to the theme/layout to decide
+    whether or not to show this, though.
+
 ``options``
     If this is given, it should be a dictionary (object in JSON parlance)
     containing application-specific options. You will need to check the

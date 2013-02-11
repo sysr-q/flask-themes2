@@ -4,5 +4,6 @@
     "name": "Calm Blue", 
     "author": "LeafStorm",
     "description": "A calm, blue theme based on Flaskr.",
-    "license": "MIT/X11"
+    "license": "MIT/X11",
+    "version": "1.0.1"
 }

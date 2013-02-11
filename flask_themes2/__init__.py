@@ -78,6 +78,8 @@ def global_theme_get_info(ctx, attribute_name, fallback=''):
     theme = get_theme(active_theme(ctx))
     try:
         info = getattr(theme, attribute_name)
+        if info is None:
+            raise AttributeError("Got None for getattr(theme, '{0}')".format(attribute_name))
         return info
     except AttributeError:
         pass
@@ -439,6 +441,9 @@ class Theme(object):
         #: The theme's doctype. This can be ``html4``, ``html5``, or ``xhtml``
         #: with html5 being the default if not specified.
         self.doctype = i.get('doctype', 'html5')
+
+        #: The theme's version string.
+        self.version = i.get('version')
 
         #: Any additional options. These are entirely application-specific,
         #: and may determine other aspects of the application's behavior.
