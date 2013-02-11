@@ -77,7 +77,7 @@ def global_theme_static(ctx, filename, external=False):
 def global_theme_get_info(ctx, attribute_name, fallback=''):
     theme = get_theme(active_theme(ctx))
     try:
-        info = theme.getattr(attribute_name)
+        info = getattr(theme, attribute_name)
         return info
     except AttributeError:
         pass
