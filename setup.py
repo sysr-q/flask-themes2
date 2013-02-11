@@ -18,8 +18,9 @@ kw = {
     "license": "MIT",
     "author": "plausibility",
     "author_email": "chris@gibsonsec.org",
-    "description": "Provides infrastructure for theming Flask applications",
+    "description": "Provides infrastructure for theming Flask applications (and supports Flask>=0.6!)",
     "long_description": long_desc(),
+    "keywords": "flask themes theming style",
     "packages": [
         "flask_themes2"
     ],
