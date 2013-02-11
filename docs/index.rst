@@ -1,9 +1,9 @@
-============
-Spirits
-============
-.. currentmodule:: spirits
+=============
+Flask-Themes2
+=============
+.. currentmodule:: flask.ext.themes2
 
-Spirits makes it easy for your application to support a wide range of
+Flask-Themes2 makes it easy for your application to support a wide range of
 appearances.
 
 .. contents::
@@ -226,7 +226,7 @@ templates can use those building blocks to form the more complicated pages.
 Selecting Themes
 ----------------
 How exactly you select the theme will vary between applications, so
-Spirits doesn't make the decision for you. If your app is any larger than
+Flask-Themes2 doesn't make the decision for you. If your app is any larger than
 a few views, though, you will probably want to provide a helper function that
 selects the theme based on whatever (settings, logged-in user, page) and
 renders the template. For example::

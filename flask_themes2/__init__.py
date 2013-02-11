@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-spirits
-===============
+Flask-Themes2
+=============
+
 This provides infrastructure for theming support in your Flask applications.
 It takes care of:
 
@@ -10,7 +11,7 @@ It takes care of:
 - Serving their static media
 - Letting themes reference their templates and static media
 
-:copyright: 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier
+:copyright: 2013 Christopher Carter, 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier
 :license:   MIT/X11, see LICENSE for details
 """
 from __future__ import with_statement
@@ -18,8 +19,17 @@ import itertools
 import os
 import os.path
 import re
+
 from flask import (Module, send_from_directory, render_template, json,
-                   _request_ctx_stack, abort, url_for, Blueprint)
+                   abort, url_for, Blueprint)
+
+# Support >= Flask 0.9
+try:
+    from flask import _app_ctx_stack as stack
+except ImportError:
+    from flask import _request_ctx_stack as stack
+
+
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from operator import attrgetter
@@ -284,7 +294,7 @@ def get_theme(ident):
 
     :param ident: The theme identifier.
     """
-    ctx = _request_ctx_stack.top
+    ctx = stack.top
     return ctx.app.theme_manager.themes[ident]
 
 
@@ -293,7 +303,7 @@ def get_themes_list():
     This returns a list of all the themes in the current app's theme manager,
     sorted by identifier.
     """
-    ctx = _request_ctx_stack.top
+    ctx = stack.top
     return list(ctx.app.theme_manager.list_themes())
 
 
@@ -313,7 +323,7 @@ class ThemeTemplateLoader(BaseLoader):
             template = template[8:]
         try:
             themename, templatename = template.split('/', 1)
-            ctx = _request_ctx_stack.top
+            ctx = stack.top
             theme = ctx.app.theme_manager.themes[themename]
         except (ValueError, KeyError):
             raise TemplateNotFound(template)
@@ -324,7 +334,7 @@ class ThemeTemplateLoader(BaseLoader):
 
     def list_templates(self):
         res = []
-        ctx = _request_ctx_stack.top
+        ctx = stack.top
         fmt = '_themes/%s/%s'
         for ident, theme in ctx.app.theme_manager.themes.iteritems():
             res.extend((fmt % (ident, t)).encode("utf8")
@@ -333,13 +343,13 @@ class ThemeTemplateLoader(BaseLoader):
 
 
 def template_exists(templatename):
-    ctx = _request_ctx_stack.top
+    ctx = stack.top
     return templatename in containable(ctx.app.jinja_env.list_templates())
 
 
 def static(themeid, filename):
     try:
-        ctx = _request_ctx_stack.top
+        ctx = stack.top
         theme = ctx.app.theme_manager.themes[themeid]
     except KeyError:
         abort(404)
