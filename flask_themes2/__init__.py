@@ -249,6 +249,10 @@ class ThemeTemplateLoader(BaseLoader):
 
 #########################################################################
 
+themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
+themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
+themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
+
 class Themes:
     """ This is the main class you will use to interact
         with Flask-Themes2 on your app.
@@ -288,11 +292,6 @@ class Themes:
         if manager_cls is None:
             manager_cls = ThemeManager
         manager_cls(app, app_identifier, loaders=loaders)
-
-        themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
-        themes_blueprint.jinja_loader
-        themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
-        themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
 
         app.jinja_env.globals['theme'] = global_theme_template
         app.jinja_env.globals['theme_static'] = global_theme_static
