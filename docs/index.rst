@@ -44,7 +44,7 @@ Writing Templates
 Flask uses the Jinja2 template engine, so you should read `its documentation`_
 to learn about the actual syntax of the templates.
 
-All templates loaded from a theme will have a global function named ``theme``
+All templates loaded from a theme will have a global function named `theme`
 available to look up the theme's templates. For example, if you want to
 extend, import, or include another template from your theme, you can use
 ``theme(template_name)``, like this:
@@ -70,7 +70,7 @@ the tag without calling `theme`.
     {% from '_helpers.html' import link_to %}
     {% include '_jquery.html' %}
 
-You can also get the URL for the theme's media files with the ``theme_static``
+You can also get the URL for the theme's media files with the `theme_static`
 function:
 
 .. sourcecode:: html+jinja
@@ -78,7 +78,7 @@ function:
     <link rel=stylesheet href="{{ theme_static('style.css') }}">
 
 If you want to get information about the currently active theme, you can do
-that with the ``theme_get_info`` function:
+that with the `theme_get_info` function:
 
 .. sourcecode:: html+jinja
 
@@ -182,7 +182,7 @@ Tips for Theme Writers
 
 Using Themes in Your Application
 ================================
-To set up your application to use themes, you need to use ``flask.ext.themes2.Themes``,
+To set up your application to use themes, you need to use `Themes` (``flask.ext.themes2.Themes``),
 in one of two ways:
 
 .. code-block:: python
@@ -196,11 +196,11 @@ in one of two ways:
     t = Themes()
     t.init_themes(app, app_identifer="...")
 
-The first is simply a quicker way of the second, as it will automatically call ``init_themes`` on your app.
+The first is simply a quicker way of the second, as it will automatically call `init_themes` on your app.
 
 This does three things:
 
-* Adds a ``ThemeManager`` instance to your application as ``app.theme_manager``.
+* Adds a `ThemeManager` instance to your application as `app.theme_manager`.
 * Registers the ``theme`` and ``theme_static`` globals with the Jinja2
   environment.
 * Registers the ``_themes`` module or blueprint (depending on the Flask version)
@@ -210,7 +210,7 @@ This does three things:
 .. warning::
 
    Since the "Blueprints" mechanism of Flask 0.7 causes headaches in module
-   compatibility mode, ``init_themes`` will automatically register ``_themes``
+   compatibility mode, `init_themes` will automatically register ``_themes``
    as a blueprint and not as a module if possible. If this causes headaches
    with your application, then you need to either (a) upgrade to Flask 0.7 or
    (b) set ``Flask<0.7`` in your requirements.txt file.
@@ -218,19 +218,19 @@ This does three things:
 
 Theme Loaders
 -------------
-``init_themes`` takes a few arguments, but the one you will probably be using
+`init_themes` takes a few arguments, but the one you will probably be using
 most is ``loaders``, which is a list of theme loaders to use (in order) to find
 themes. The default theme loaders are:
 
-* ``packaged_themes_loader``, which looks in your application's ``themes``
+* `packaged_themes_loader`, which looks in your application's ``themes``
   directory for themes (you can use this to ship one or two default themes
   with your application)
-* ``theme_paths_loader``, which looks at the `THEME_PATHS` configuration
+* `theme_paths_loader`, which looks at the `THEME_PATHS` configuration
   setting and loads themes from each folder therein
 
 It's easy to write your own loaders, though - a loader is just a callable that
-takes an application instance and returns an iterable of ``Theme`` instances.
-You can use the ``load_themes_from`` helper function to yield all the valid
+takes an application instance and returns an iterable of `Theme` instances.
+You can use the `load_themes_from` helper function to yield all the valid
 themes contained within a folder. For example, if your app uses an "instance
 folder" like `Zine`_ that can have a "themes" directory::
 
@@ -247,11 +247,11 @@ folder" like `Zine`_ that can have a "themes" directory::
 Rendering Templates
 -------------------
 Once you have the themes set up, you can call in to the theme machinery with
-``render_theme_template``. It works like ``render_template``, but takes a ``theme``
-parameter before the template name. Also, ``static_file_url`` will generate a
+`render_theme_template`. It works like `render_template`, but takes a ``theme``
+parameter before the template name. Also, `static_file_url` will generate a
 URL to the given static file.
 
-When you call ``render_theme_template``, it sets the "active template" to the
+When you call `render_theme_template`, it sets the "active template" to the
 given theme, even if you have to fall back to rendering the application's
 template. That way, if you have a template like ``by_year.html`` that isn't
 defined by the current theme, you can still
@@ -289,10 +289,10 @@ renders the template. For example:
 
 .. warning::
    
-   Make sure that you *only* get ``Theme`` instances from the theme manager. If
-   you need to create a ``Theme`` instance manually outside of a theme loader,
+   Make sure that you *only* get `Theme` instances from the theme manager. If
+   you need to create a `Theme` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
-   load that theme and pass it to ``init_themes``, because if the theme is not
+   load that theme and pass it to `init_themes`, because if the theme is not
    loaded by the manager, then its templates and static files won't be
    available, which will usually lead to your application breaking.
 
