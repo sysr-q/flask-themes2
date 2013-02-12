@@ -77,6 +77,30 @@ function:
 
     <link rel=stylesheet href="{{ theme_static('style.css') }}">
 
+If you want to get information about the currently active theme, you can do
+that with the ``theme_get_info`` function:
+
+.. sourcecode:: html+jinja
+
+    This theme is <a href="{{ theme_get_info('website'}}">
+      <b>{{ theme_get_info('name') }}</b>
+    </a>
+
+If you want to include things which might or might not be in your theme, you can do
+something like this:
+
+.. sourcecode:: html+jinja
+
+    This theme is <a href="{{ theme_get_info('website'}}">
+      <b>{{ theme_get_info('name') }}</b>
+      {%- if theme_get_info('version') != "" %}
+        <b>({{ theme_get_info('version') }})</b>
+      {% endif -%}
+    </a>
+
+By default, this will first check if that's direct theme information, then it
+will check if it's part of the ``options`` dictionary of the theme.
+
 .. _its documentation: http://jinja.pocoo.org/2/documentation/templates
 
 
