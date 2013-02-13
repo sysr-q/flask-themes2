@@ -1,4 +1,4 @@
-recursive-include tests *.py *.html *.txt *.json
+recursive-include tests *.py *.html *.txt *.json README.rst
 include base_theme/*
 include base_theme/static/*
 include base_theme/templates/*
