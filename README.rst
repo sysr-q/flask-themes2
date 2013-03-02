@@ -4,6 +4,10 @@ Flask-Themes2
 .. _docs: http://flask-themes2.rtfd.org
 .. _GitHub: https://github.com/plausibility/flask-themes2
 
+.. image:: https://travis-ci.org/plausibility/flask-themes2.png?branch=master
+    :target: http://travis-ci.org/plausibility/flask-themes2
+    :alt: Build Status
+
 Flask-Themes2 is a fork of Spirits, which is in turn a fork of Flask-Themes.
 
 - `Flask-Themes2 <https://github.com/plausibility/flask-themes2>`_ maintained by Christopher "plausibility" Carter
