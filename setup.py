@@ -1,9 +1,9 @@
 from setuptools import setup
 import sys
 
-requires = ["Flask>=0.6"]
-if sys.version_info < (2, 6):
-    requires.append("simplejson")
+requires = ["Flask>=0.6", "simpejson"]
+#if sys.version_info < (2, 6):
+#    requires.append("simplejson")
 
 def long_desc():
     with open('README.rst', 'rb') as f:
