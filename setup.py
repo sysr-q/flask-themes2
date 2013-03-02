@@ -1,7 +1,7 @@
 from setuptools import setup
 import sys
 
-requires = ["Flask>=0.6", "simpejson"]
+requires = ["Flask>=0.6", "simplejson"]
 #if sys.version_info < (2, 6):
 #    requires.append("simplejson")
 
