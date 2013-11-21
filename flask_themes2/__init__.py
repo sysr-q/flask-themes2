@@ -11,25 +11,20 @@ It takes care of:
 - Serving their static media
 - Letting themes reference their templates and static media
 
-:copyright: 2013 Christopher Carter, 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier
+:copyright: 2013 Christopher Carter, 2012 Drew Lustro,
+            2010 Matthew "LeafStorm" Frazier
 :license:   MIT/X11, see LICENSE for details
 """
-
 from __future__ import with_statement
-
-from .version import __version__
 
 ## Yarg, here be pirates!
 from operator import attrgetter
 import itertools
 import os
-import os.path
 import re
 
-
-from flask import (Module, send_from_directory, render_template, json,
+from flask import (send_from_directory, render_template, json,
                    abort, url_for, Blueprint)
-
 # Support >= Flask 0.9
 try:
     from flask import _app_ctx_stack as stack
@@ -38,13 +33,19 @@ except ImportError:
 
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
-
 from werkzeug import cached_property
+
+from ._compat import text_type, iteritems, itervalues
+
+
+__version__ = '0.13'
+
 
 DOCTYPES = 'html4 html5 xhtml'.split()
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
+
 
 def starchain(i):
     return itertools.chain(*i)
@@ -62,16 +63,18 @@ def active_theme(ctx):
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
-    templatepath = '_themes/%s/%s' % (theme, templatename)
+    templatepath = '_themes/{}/{}'.format(theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
         return templatename
 
+
 @contextfunction
 def global_theme_static(ctx, filename, external=False):
     theme = active_theme(ctx)
     return static_file_url(theme, filename, external)
+
 
 @contextfunction
 def global_theme_get_info(ctx, attribute_name, fallback=''):
@@ -79,11 +82,13 @@ def global_theme_get_info(ctx, attribute_name, fallback=''):
     try:
         info = getattr(theme, attribute_name)
         if info is None:
-            raise AttributeError("Got None for getattr(theme, '{0}')".format(attribute_name))
+            raise AttributeError("Got None for getattr(theme, '{0}')".
+                                 format(attribute_name))
         return info
     except AttributeError:
         pass
     return theme.options.get(attribute_name, fallback)
+
 
 def static_file_url(theme, filename, external=False):
     """
@@ -98,6 +103,7 @@ def static_file_url(theme, filename, external=False):
         theme = theme.identifier
     return url_for('_themes.static', themeid=theme, filename=filename,
                    _external=external)
+
 
 def render_theme_template(theme, template_name, _fallback=True, **context):
     """
@@ -129,6 +135,7 @@ def render_theme_template(theme, template_name, _fallback=True, **context):
 
 ### convenience #########################################################
 
+
 def get_theme(ident):
     """
     This gets the theme with the given identifier from the current app's
@@ -148,6 +155,7 @@ def get_themes_list():
     ctx = stack.top
     return list(ctx.app.theme_manager.list_themes())
 
+
 def static(themeid, filename):
     try:
         ctx = stack.top
@@ -156,11 +164,13 @@ def static(themeid, filename):
         abort(404)
     return send_from_directory(theme.static_path, filename)
 
+
 def template_exists(templatename):
     ctx = stack.top
     return templatename in containable(ctx.app.jinja_env.list_templates())
 
 ### loaders #############################################################
+
 
 def list_folders(path):
     """
@@ -211,11 +221,13 @@ def theme_paths_loader(app):
     name of its directory.
     """
     theme_paths = app.config.get('THEME_PATHS', ())
-    if isinstance(theme_paths, basestring):
+
+    if isinstance(theme_paths, text_type):
         theme_paths = [p.strip() for p in theme_paths.split(';')]
     return starchain(
         load_themes_from(path) for path in theme_paths
     )
+
 
 class ThemeTemplateLoader(BaseLoader):
     """
@@ -244,8 +256,8 @@ class ThemeTemplateLoader(BaseLoader):
         res = []
         ctx = stack.top
         fmt = '_themes/%s/%s'
-        for ident, theme in ctx.app.theme_manager.themes.iteritems():
-            res.extend((fmt % (ident, t)).encode("utf8")
+        for ident, theme in iteritems(ctx.app.theme_manager.themes):
+            res.extend((fmt % (ident, t))
                        for t in theme.jinja_loader.list_templates())
         return res
 
@@ -255,21 +267,24 @@ themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
 themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
 themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
 
-class Themes:
-    """ This is the main class you will use to interact
-        with Flask-Themes2 on your app.
 
-        It really only implements the bare minimum, the rest
-        is passed through to other methods and classes.
+class Themes:
+    """
+    This is the main class you will use to interact
+    with Flask-Themes2 on your app.
+
+    It really only implements the bare minimum, the rest
+    is passed through to other methods and classes.
     """
 
     def __init__(self, app=None, **kwargs):
-        """ If given an app, this will simply call
-            init_themes, and pass through all kwargs
-            to init_themes, making it super easy.
+        """
+        If given an app, this will simply call init_themes,
+        and pass through all kwargs to init_themes,
+        making it super easy.
 
-            :param app: the `~flask.Flask` instance to setup themes for.
-            :param \*\*kwargs: keyword args to pass through to init_themes
+        :param app: the `~flask.Flask` instance to setup themes for.
+        :param \*\*kwargs: keyword args to pass through to init_themes
         """
         if app is not None:
             self._app = app
@@ -279,15 +294,19 @@ class Themes:
 
     def init_themes(self, app, loaders=None, app_identifier=None,
                     manager_cls=None, theme_url_prefix="/_themes"):
-        """ This sets up the theme infrastructure by adding a `ThemeManager` to the
-            given app and registering the module/blueprint containing the views and
-            templates needed.
+        """This sets up the theme infrastructure by adding a `ThemeManager`
+        to the given app and registering the module/blueprint containing the
+        views and templates needed.
 
-            :param app: The `~flask.Flask` instance to set up themes for.
-            :param loaders: An iterable of loaders to use. It defaults to `packaged_themes_loader` and `theme_paths_loader`.
-            :param app_identifier: The application identifier to use. If not given, it defaults to the app's import name.
-            :param manager_cls: If you need a custom manager class, you can pass it in here.
-            :param theme_url_prefix: The prefix to use for the URLs on the themes module. (Defaults to ``/_themes``.)
+        :param app: The `~flask.Flask` instance to set up themes for.
+        :param loaders: An iterable of loaders to use. It defaults to
+                        `packaged_themes_loader` and `theme_paths_loader`.
+        :param app_identifier: The application identifier to use. If not given,
+                               it defaults to the app's import name.
+        :param manager_cls: If you need a custom manager class, you can pass it
+                            in here.
+        :param theme_url_prefix: The prefix to use for the URLs on the themes
+                                 module. (Defaults to ``/_themes``.)
         """
         if app_identifier is None:
             app_identifier = app.import_name
@@ -299,6 +318,7 @@ class Themes:
         app.jinja_env.globals['theme_static'] = global_theme_static
         app.jinja_env.globals['theme_get_info'] = global_theme_get_info
         app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
+
 
 class ThemeManager(object):
     """
@@ -347,7 +367,7 @@ class ThemeManager(object):
         """
         This yields all the `Theme` objects, in sorted order.
         """
-        return sorted(self.themes.itervalues(), key=attrgetter('identifier'))
+        return sorted(itervalues(self.themes), key=attrgetter('identifier'))
 
     def bind_app(self, app):
         """
@@ -380,6 +400,7 @@ class ThemeManager(object):
         for theme in starchain(ldr(self.app) for ldr in self.loaders):
             if self.valid_app_id(theme.application):
                 self.themes[theme.identifier] = theme
+
 
 class Theme(object):
     """
