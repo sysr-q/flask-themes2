@@ -55,7 +55,7 @@ requires = ["Flask>=0.6", "simplejson"]
 
 setup(
     name="Flask-Themes2",
-    version=__version__,
+    version="0.1.3",  # No execfile() here!
     url="https://github.com/plausibility/flask-themes2",
     license="MIT",
     author="plausibility",
