@@ -49,8 +49,6 @@ feel free to contribute.
 """
 from setuptools import setup
 
-from flask_themes2 import __version__
-
 requires = ["Flask>=0.6", "simplejson"]
 
 setup(
