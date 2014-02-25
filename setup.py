@@ -49,11 +49,17 @@ feel free to contribute.
 """
 from setuptools import setup
 
+def get_version(fname='flask_themes2/__init__.py'):
+    with open(fname) as f:
+        for line in f:
+            if line.startswith('__version__'):
+                return eval(line.split('=')[-1])
+
 requires = ["Flask>=0.6", "simplejson"]
 
 setup(
     name="Flask-Themes2",
-    version="0.1.3",  # No execfile() here!
+    version=get_version(),
     url="https://github.com/plausibility/flask-themes2",
     license="MIT",
     author="plausibility",
