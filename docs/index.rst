@@ -189,12 +189,12 @@ in one of two ways:
 
     # The first way
     app = Flask(__name__)
-    Themes(app, app_identifer="...")
+    Themes(app, app_identifier="...")
 
     # The second way
     app = Flask(__name__)
     t = Themes()
-    t.init_themes(app, app_identifer="...")
+    t.init_themes(app, app_identifier="...")
 
 The first is simply a quicker way of the second, as it will automatically call `init_themes` on your app.
 
