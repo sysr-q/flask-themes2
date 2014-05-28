@@ -38,7 +38,7 @@ from werkzeug import cached_property
 from ._compat import text_type, iteritems, itervalues
 
 
-__version__ = '0.13'
+__version__ = '0.1.3'
 
 
 DOCTYPES = 'html4 html5 xhtml'.split()
