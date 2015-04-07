@@ -99,10 +99,19 @@ def static_file_url(theme, filename, external=False):
     :param external: Whether the link should be external or not. Defaults to
                      `False`.
     """
+    from flask import current_app as app
+
     if isinstance(theme, Theme):
         theme = theme.identifier
-    return url_for('_themes.static', themeid=theme, filename=filename,
-                   _external=external)
+
+    theme_obj = get_theme(theme)
+
+    if app.theme_manager.static_folder:
+        return url_for('_themes.static', filename=theme + '/' + filename,
+                       _external=external)
+    else:
+        return url_for('_themes.static', themeid=theme, filename=filename,
+                       _external=external)
 
 
 def render_theme_template(theme, template_name, _fallback=True, **context):
@@ -263,9 +272,8 @@ class ThemeTemplateLoader(BaseLoader):
 
 #########################################################################
 
-themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
+themes_blueprint = Blueprint('_themes', __name__)
 themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
-themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
 
 
 class Themes:
@@ -293,7 +301,8 @@ class Themes:
             self._app = None
 
     def init_themes(self, app, loaders=None, app_identifier=None,
-                    manager_cls=None, theme_url_prefix="/_themes"):
+                    manager_cls=None, theme_url_prefix="/_themes",
+                    static_folder=None):
         """This sets up the theme infrastructure by adding a `ThemeManager`
         to the given app and registering the module/blueprint containing the
         views and templates needed.
@@ -312,12 +321,21 @@ class Themes:
             app_identifier = app.import_name
         if manager_cls is None:
             manager_cls = ThemeManager
-        manager_cls(app, app_identifier, loaders=loaders)
+        manager_cls(app, app_identifier, loaders=loaders, static_folder=static_folder)
 
         app.jinja_env.globals['theme'] = global_theme_template
         app.jinja_env.globals['theme_static'] = global_theme_static
         app.jinja_env.globals['theme_get_info'] = global_theme_get_info
-        app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
+
+        if static_folder:
+            themes_blueprint.static_folder = static_folder
+            themes_blueprint.static_url_path = app.static_url_path + theme_url_prefix
+        else:
+            themes_blueprint.url_prefix = theme_url_prefix
+            themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
+
+
+        app.register_blueprint(themes_blueprint)
 
 
 class ThemeManager(object):
@@ -340,9 +358,10 @@ class ThemeManager(object):
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
     """
-    def __init__(self, app, app_identifier, loaders=None):
+    def __init__(self, app, app_identifier, loaders=None, static_folder=None):
         self.bind_app(app)
         self.app_identifier = app_identifier
+        self.static_folder = static_folder
 
         self._themes = None
 
