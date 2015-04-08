@@ -3,15 +3,15 @@ Flask-Themes2
 =============
 
 .. _docs: http://flask-themes2.rtfd.org
-.. _GitHub: https://github.com/plausibility/flask-themes2
+.. _GitHub: https://github.com/sysr-q/flask-themes2
 
-.. image:: https://travis-ci.org/plausibility/flask-themes2.png?branch=master
-    :target: http://travis-ci.org/plausibility/flask-themes2
+.. image:: https://travis-ci.org/sysr-q/flask-themes2.png?branch=master
+    :target: http://travis-ci.org/sysr-q/flask-themes2
     :alt: Build Status
 
 Flask-Themes2 is a fork of Spirits, which is in turn a fork of Flask-Themes.
 
-- `Flask-Themes2 <https://github.com/plausibility/flask-themes2>`_ maintained by Christopher "plausibility" Carter
+- `Flask-Themes2 <https://github.com/sysr-q/flask-themes2>`_ maintained by Christopher "sysr_q" Carter
 - `Spirits <https://github.com/drewlustro/spirits>`_ maintained by Drew Lustro
 - `Flask-Themes <https://bitbucket.org/leafstorm/flask-themes>`_ by Matthew "LeafStorm" Frazier
 
@@ -35,7 +35,7 @@ To install the development (latest) version:
 
 .. code-block:: sh
 
-    $ pip install -e git://github.com/plausibility/flask-themes2.git#egg=flask_themes2-dev
+    $ pip install -e git://github.com/sysr-q/flask-themes2.git#egg=flask_themes2-dev
 
 Documentation
 -------------
@@ -53,10 +53,10 @@ requires = ["Flask>=0.6", "simplejson"]
 
 setup(
     name="Flask-Themes2",
-    version="0.1.3",  # No execfile() here!
-    url="https://github.com/plausibility/flask-themes2",
+    version="0.1.4",  # No execfile() here!
+    url="https://github.com/sysr-q/flask-themes2",
     license="MIT",
-    author="plausibility",
+    author="sysr-q",
     author_email="chris@gibsonsec.org",
     description="Provides infrastructure for theming Flask applications \
                     (and supports Flask>=0.6!)",
