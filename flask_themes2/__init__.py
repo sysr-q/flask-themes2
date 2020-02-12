@@ -33,7 +33,7 @@ except ImportError:
 
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
-from werkzeug import cached_property
+from werkzeug.util import cached_property
 
 from ._compat import text_type, iteritems, itervalues
 
