@@ -31,9 +31,14 @@ try:
 except ImportError:
     from flask import _request_ctx_stack as stack
 
+try:
+    from werkzeug.utils import cached_property
+except ImportError:
+    from werkzeug import cached_property
+
+
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
-from werkzeug.utils import cached_property
 
 from ._compat import text_type, iteritems, itervalues
 
