@@ -23,8 +23,8 @@ import itertools
 import os
 import re
 
-from flask import (send_from_directory, render_template, json,
-                   abort, url_for, Blueprint)
+from flask import send_from_directory, render_template, json, abort, url_for, Blueprint
+
 # Support >= Flask 0.9
 try:
     from flask import _app_ctx_stack as stack
@@ -38,13 +38,12 @@ from werkzeug.utils import cached_property
 from ._compat import text_type, iteritems, itervalues
 
 
-__version__ = '0.1.4'
+__version__ = "0.1.5"
 
 
-DOCTYPES = 'html4 html5 xhtml'.split()
-IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
-containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
+containable = lambda i: i if hasattr(i, "__contains__") else tuple(i)
 
 
 def starchain(i):
@@ -52,10 +51,10 @@ def starchain(i):
 
 
 def active_theme(ctx):
-    if '_theme' in ctx:
-        return ctx['_theme']
-    elif ctx.name.startswith('_themes/'):
-        return ctx.name[8:].split('/', 1)[0]
+    if "_theme" in ctx:
+        return ctx["_theme"]
+    elif ctx.name.startswith("_themes/"):
+        return ctx.name[8:].split("/", 1)[0]
     else:
         raise RuntimeError("Could not find the active theme")
 
@@ -63,7 +62,7 @@ def active_theme(ctx):
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
-    templatepath = '_themes/{}/{}'.format(theme, templatename)
+    templatepath = "_themes/{}/{}".format(theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
@@ -77,13 +76,14 @@ def global_theme_static(ctx, filename, external=False):
 
 
 @contextfunction
-def global_theme_get_info(ctx, attribute_name, fallback=''):
+def global_theme_get_info(ctx, attribute_name, fallback=""):
     theme = get_theme(active_theme(ctx))
     try:
         info = getattr(theme, attribute_name)
         if info is None:
-            raise AttributeError("Got None for getattr(theme, '{0}')".
-                                 format(attribute_name))
+            raise AttributeError(
+                "Got None for getattr(theme, '{0}')".format(attribute_name)
+            )
         return info
     except AttributeError:
         pass
@@ -107,11 +107,13 @@ def static_file_url(theme, filename, external=False):
     theme_obj = get_theme(theme)
 
     if app.theme_manager.static_folder:
-        return url_for('_themes.static', filename=theme + '/' + filename,
-                       _external=external)
+        return url_for(
+            "_themes.static", filename=theme + "/" + filename, _external=external
+        )
     else:
-        return url_for('_themes.static', themeid=theme, filename=filename,
-                       _external=external)
+        return url_for(
+            "_themes.static", themeid=theme, filename=filename, _external=external
+        )
 
 
 def render_theme_template(theme, template_name, _fallback=True, **context):
@@ -132,15 +134,15 @@ def render_theme_template(theme, template_name, _fallback=True, **context):
     """
     if isinstance(theme, Theme):
         theme = theme.identifier
-    context['_theme'] = theme
+    context["_theme"] = theme
     try:
-        return render_template('_themes/%s/%s' % (theme, template_name),
-                               **context)
+        return render_template("_themes/%s/%s" % (theme, template_name), **context)
     except TemplateNotFound:
         if _fallback:
             return render_template(template_name, **context)
         else:
             raise
+
 
 ### convenience #########################################################
 
@@ -178,6 +180,7 @@ def template_exists(templatename):
     ctx = stack.top
     return templatename in containable(ctx.app.jinja_env.list_templates())
 
+
 ### loaders #############################################################
 
 
@@ -188,8 +191,9 @@ def list_folders(path):
 
     :param path: The path to list directories in.
     """
-    return (name for name in os.listdir(path)
-            if os.path.isdir(os.path.join(path, name)))
+    return (
+        name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))
+    )
 
 
 def load_themes_from(path):
@@ -216,7 +220,7 @@ def packaged_themes_loader(app):
     example, the ``someapp`` package can ship themes in the directory
     ``someapp/themes/``.
     """
-    themes_path = os.path.join(app.root_path, 'themes')
+    themes_path = os.path.join(app.root_path, "themes")
     if os.path.exists(themes_path):
         return load_themes_from(themes_path)
     else:
@@ -229,13 +233,11 @@ def theme_paths_loader(app):
     directories that contain themes. The theme's identifier must match the
     name of its directory.
     """
-    theme_paths = app.config.get('THEME_PATHS', ())
+    theme_paths = app.config.get("THEME_PATHS", ())
 
     if isinstance(theme_paths, text_type):
-        theme_paths = [p.strip() for p in theme_paths.split(';')]
-    return starchain(
-        load_themes_from(path) for path in theme_paths
-    )
+        theme_paths = [p.strip() for p in theme_paths.split(";")]
+    return starchain(load_themes_from(path) for path in theme_paths)
 
 
 class ThemeTemplateLoader(BaseLoader):
@@ -243,6 +245,7 @@ class ThemeTemplateLoader(BaseLoader):
     This is a template loader that loads templates from the current app's
     loaded themes.
     """
+
     def __init__(self, as_blueprint=False):
         self.as_blueprint = as_blueprint
         BaseLoader.__init__(self)
@@ -251,7 +254,7 @@ class ThemeTemplateLoader(BaseLoader):
         if self.as_blueprint and template.startswith("_themes/"):
             template = template[8:]
         try:
-            themename, templatename = template.split('/', 1)
+            themename, templatename = template.split("/", 1)
             ctx = stack.top
             theme = ctx.app.theme_manager.themes[themename]
         except (ValueError, KeyError):
@@ -264,15 +267,15 @@ class ThemeTemplateLoader(BaseLoader):
     def list_templates(self):
         res = []
         ctx = stack.top
-        fmt = '_themes/%s/%s'
+        fmt = "_themes/%s/%s"
         for ident, theme in iteritems(ctx.app.theme_manager.themes):
-            res.extend((fmt % (ident, t))
-                       for t in theme.jinja_loader.list_templates())
+            res.extend((fmt % (ident, t)) for t in theme.jinja_loader.list_templates())
         return res
+
 
 #########################################################################
 
-themes_blueprint = Blueprint('_themes', __name__)
+themes_blueprint = Blueprint("_themes", __name__)
 themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
 
 
@@ -300,9 +303,15 @@ class Themes:
         else:
             self._app = None
 
-    def init_themes(self, app, loaders=None, app_identifier=None,
-                    manager_cls=None, theme_url_prefix="/_themes",
-                    static_folder=None):
+    def init_themes(
+        self,
+        app,
+        loaders=None,
+        app_identifier=None,
+        manager_cls=None,
+        theme_url_prefix="/_themes",
+        static_folder=None,
+    ):
         """This sets up the theme infrastructure by adding a `ThemeManager`
         to the given app and registering the module/blueprint containing the
         views and templates needed.
@@ -323,17 +332,18 @@ class Themes:
             manager_cls = ThemeManager
         manager_cls(app, app_identifier, loaders=loaders, static_folder=static_folder)
 
-        app.jinja_env.globals['theme'] = global_theme_template
-        app.jinja_env.globals['theme_static'] = global_theme_static
-        app.jinja_env.globals['theme_get_info'] = global_theme_get_info
+        app.jinja_env.globals["theme"] = global_theme_template
+        app.jinja_env.globals["theme_static"] = global_theme_static
+        app.jinja_env.globals["theme_get_info"] = global_theme_get_info
 
         if static_folder:
             themes_blueprint.static_folder = static_folder
             themes_blueprint.static_url_path = app.static_url_path + theme_url_prefix
         else:
             themes_blueprint.url_prefix = theme_url_prefix
-            themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
-
+            themes_blueprint.add_url_rule(
+                "/<themeid>/<path:filename>", "static", view_func=static
+            )
 
         app.register_blueprint(themes_blueprint)
 
@@ -358,6 +368,7 @@ class ThemeManager(object):
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
     """
+
     def __init__(self, app, app_identifier, loaders=None, static_folder=None):
         self.bind_app(app)
         self.app_identifier = app_identifier
@@ -386,7 +397,7 @@ class ThemeManager(object):
         """
         This yields all the `Theme` objects, in sorted order.
         """
-        return sorted(itervalues(self.themes), key=attrgetter('identifier'))
+        return sorted(itervalues(self.themes), key=attrgetter("identifier"))
 
     def bind_app(self, app):
         """
@@ -427,81 +438,83 @@ class Theme(object):
 
     :param path: The path to the theme directory.
     """
+
     def __init__(self, path):
         #: The theme's root path. All the files in the theme are under this
         #: path.
         self.path = os.path.abspath(path)
 
-        with open(os.path.join(self.path, 'info.json')) as fd:
+        with open(os.path.join(self.path, "info.json")) as fd:
             self.info = i = json.load(fd)
 
         #: The theme's name, as given in info.json. This is the human
         #: readable name.
-        self.name = i['name']
+        self.name = i["name"]
 
         #: The application identifier given in the theme's info.json. Your
         #: application will probably want to validate it.
-        self.application = i['application']
+        self.application = i["application"]
 
         #: The theme's identifier. This is an actual Python identifier,
         #: and in most situations should match the name of the directory the
         #: theme is in.
-        self.identifier = i['identifier']
+        self.identifier = i["identifier"]
 
         #: The human readable description. This is the default (English)
         #: version.
-        self.description = i.get('description')
+        self.description = i.get("description")
 
         #: This is a dictionary of localized versions of the description.
         #: The language codes are all lowercase, and the ``en`` key is
         #: preloaded with the base description.
         self.localized_desc = dict(
-            (k.split('_', 1)[1].lower(), v) for k, v in i.items()
-            if k.startswith('description_')
+            (k.split("_", 1)[1].lower(), v)
+            for k, v in i.items()
+            if k.startswith("description_")
         )
-        self.localized_desc.setdefault('en', self.description)
+        self.localized_desc.setdefault("en", self.description)
 
         #: The author's name, as given in info.json. This may or may not
         #: include their email, so it's best just to display it as-is.
-        self.author = i['author']
+        self.author = i["author"]
 
         #: A short phrase describing the license, like "GPL", "BSD", "Public
         #: Domain", or "Creative Commons BY-SA 3.0".
-        self.license = i.get('license')
+        self.license = i.get("license")
 
         #: A URL pointing to the license text online.
-        self.license_url = i.get('license_url')
+        self.license_url = i.get("license_url")
 
         #: The URL to the theme's or author's Web site.
-        self.website = i.get('website')
+        self.website = i.get("website")
 
         #: The theme's preview image, within the static folder.
-        self.preview = i.get('preview')
+        self.preview = i.get("preview")
 
         #: The theme's doctype. This can be ``html4``, ``html5``, or ``xhtml``
         #: with html5 being the default if not specified.
-        self.doctype = i.get('doctype', 'html5')
+        self.doctype = i.get("doctype", "html5")
 
         #: The theme's version string.
-        self.version = i.get('version')
+        self.version = i.get("version")
 
         #: Any additional options. These are entirely application-specific,
         #: and may determine other aspects of the application's behavior.
-        self.options = i.get('options', {})
+        self.options = i.get("options", {})
 
     @cached_property
     def static_path(self):
         """
         The absolute path to the theme's static files directory.
         """
-        return os.path.join(self.path, 'static')
+        return os.path.join(self.path, "static")
 
     @cached_property
     def templates_path(self):
         """
         The absolute path to the theme's templates directory.
         """
-        return os.path.join(self.path, 'templates')
+        return os.path.join(self.path, "templates")
 
     @cached_property
     def license_text(self):
@@ -510,7 +523,7 @@ class Theme(object):
         used to display the full license text if necessary. (It is `None` if
         there was not a license.txt.)
         """
-        lt_path = os.path.join(self.path, 'license.txt')
+        lt_path = os.path.join(self.path, "license.txt")
         if os.path.exists(lt_path):
             with open(lt_path) as fd:
                 return fd.read()
