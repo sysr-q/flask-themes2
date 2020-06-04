@@ -11,7 +11,7 @@ Flask-Themes2
 
 Flask-Themes2 is a fork of Spirits, which is in turn a fork of Flask-Themes.
 
-- `Flask-Themes2 <https://github.com/sysr-q/flask-themes2>`_ maintained by Christopher "sysr_q" Carter
+- `Flask-Themes2 <https://github.com/sysr-q/flask-themes2>`_ maintained by Chris "sysr_q" Carter
 - `Spirits <https://github.com/drewlustro/spirits>`_ maintained by Drew Lustro
 - `Flask-Themes <https://bitbucket.org/leafstorm/flask-themes>`_ by Matthew "LeafStorm" Frazier
 
@@ -53,7 +53,7 @@ requires = ["Flask>=0.6", "simplejson"]
 
 setup(
     name="Flask-Themes2",
-    version="0.1.4",  # No execfile() here!
+    version="0.1.5",  # No execfile() here!
     url="https://github.com/sysr-q/flask-themes2",
     license="MIT",
     author="sysr-q",
@@ -62,9 +62,7 @@ setup(
                     (and supports Flask>=0.6!)",
     long_description=__doc__,
     keywords="flask themes theming style",
-    packages=[
-        "flask_themes2"
-    ],
+    packages=["flask_themes2"],
     zip_safe=False,
     install_requires=requires,
     tests_require="nose",
@@ -77,6 +75,6 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-        "Topic :: Software Development :: Libraries :: Python Modules"
-    ]
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
 )
