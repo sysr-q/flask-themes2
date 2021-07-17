@@ -1,7 +1,7 @@
 =============
 Flask-Themes2
 =============
-.. currentmodule:: flask.ext.themes2
+.. currentmodule:: flask_themes2
 
 Flask-Themes2 makes it easy for your application to support a wide range of
 appearances.
@@ -101,7 +101,7 @@ something like this:
 By default, this will first check if that's direct theme information, then it
 will check if it's part of the ``options`` dictionary of the theme.
 
-.. _its documentation: http://jinja.pocoo.org/2/documentation/templates
+.. _its documentation: https://jinja.palletsprojects.com/templates
 
 
 ``info.json`` Fields
@@ -168,7 +168,7 @@ will check if it's part of the ``options`` dictionary of the theme.
     want the theme to specify a default `Pygments`_ style in the options.)
 
 
-.. _Pygments: http://pygments.org/
+.. _Pygments: https://pygments.org/
 
 Tips for Theme Writers
 ----------------------
@@ -241,7 +241,7 @@ folder" like `Zine`_ that can have a "themes" directory::
         else:
             return ()
 
-.. _Zine: http://zine.pocoo.org/
+.. _Zine: https://github.com/mitsuhiko/zine
 
 
 Rendering Templates
