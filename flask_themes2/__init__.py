@@ -36,8 +36,12 @@ try:
 except ImportError:
     from werkzeug import cached_property
 
+# Support >= Jinja 3.1
+try:
+    from jinja2 import pass_context as contextfunction
+except ImportError:
+    from jinja2 import contextfunction
 
-from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 
 from ._compat import text_type, iteritems, itervalues
