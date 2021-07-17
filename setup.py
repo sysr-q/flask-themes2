@@ -65,8 +65,7 @@ setup(
     packages=["flask_themes2"],
     zip_safe=False,
     install_requires=requires,
-    tests_require="nose",
-    test_suite="nose.collector",
+    tests_require="pytest",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Web Environment",
