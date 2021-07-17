@@ -17,35 +17,27 @@ It takes care of:
 """
 from __future__ import with_statement
 
-## Yarg, here be pirates!
-from operator import attrgetter
 import itertools
 import os
 import re
 
-from flask import send_from_directory, render_template, json, abort, url_for, Blueprint
+# Yarg, here be pirates!
+from operator import attrgetter
 
-# Support >= Flask 0.9
-try:
-    from flask import _app_ctx_stack as stack
-except ImportError:
-    from flask import _request_ctx_stack as stack
-
-try:
-    from werkzeug.utils import cached_property
-except ImportError:
-    from werkzeug import cached_property
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    json,
+    render_template,
+    send_from_directory,
+    url_for,
+)
 
 # Support >= Jinja 3.1
-try:
-    from jinja2 import pass_context as contextfunction
-except ImportError:
-    from jinja2 import contextfunction
-
-from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
-
-from ._compat import text_type, iteritems, itervalues
-
+from jinja2 import pass_context
+from jinja2.loaders import BaseLoader, FileSystemLoader, TemplateNotFound
+from werkzeug.utils import cached_property
 
 __version__ = "0.1.5"
 
@@ -68,7 +60,7 @@ def active_theme(ctx):
         raise RuntimeError("Could not find the active theme")
 
 
-@contextfunction
+@pass_context
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
     templatepath = "_themes/{}/{}".format(theme, templatename)
@@ -78,13 +70,13 @@ def global_theme_template(ctx, templatename, fallback=True):
         return templatename
 
 
-@contextfunction
+@pass_context
 def global_theme_static(ctx, filename, external=False):
     theme = active_theme(ctx)
     return static_file_url(theme, filename, external)
 
 
-@contextfunction
+@pass_context
 def global_theme_get_info(ctx, attribute_name, fallback=""):
     theme = get_theme(active_theme(ctx))
     try:
@@ -117,11 +109,16 @@ def static_file_url(theme, filename, external=False):
 
     if app.theme_manager.static_folder:
         return url_for(
-            "_themes.static", filename=theme + "/" + filename, _external=external
+            "_themes.static",
+            filename=theme + "/" + filename,
+            _external=external,
         )
     else:
         return url_for(
-            "_themes.static", themeid=theme, filename=filename, _external=external
+            "_themes.static",
+            themeid=theme,
+            filename=filename,
+            _external=external,
         )
 
 
@@ -163,8 +160,7 @@ def get_theme(ident):
 
     :param ident: The theme identifier.
     """
-    ctx = stack.top
-    return ctx.app.theme_manager.themes[ident]
+    return current_app.theme_manager.themes[ident]
 
 
 def get_themes_list():
@@ -172,22 +168,19 @@ def get_themes_list():
     This returns a list of all the themes in the current app's theme manager,
     sorted by identifier.
     """
-    ctx = stack.top
-    return list(ctx.app.theme_manager.list_themes())
+    return list(current_app.theme_manager.list_themes())
 
 
 def static(themeid, filename):
     try:
-        ctx = stack.top
-        theme = ctx.app.theme_manager.themes[themeid]
+        theme = current_app.theme_manager.themes[themeid]
     except KeyError:
         abort(404)
     return send_from_directory(theme.static_path, filename)
 
 
 def template_exists(templatename):
-    ctx = stack.top
-    return templatename in containable(ctx.app.jinja_env.list_templates())
+    return templatename in containable(current_app.jinja_env.list_templates())
 
 
 ### loaders #############################################################
@@ -244,7 +237,7 @@ def theme_paths_loader(app):
     """
     theme_paths = app.config.get("THEME_PATHS", ())
 
-    if isinstance(theme_paths, text_type):
+    if isinstance(theme_paths, str):
         theme_paths = [p.strip() for p in theme_paths.split(";")]
     return starchain(load_themes_from(path) for path in theme_paths)
 
@@ -264,8 +257,7 @@ class ThemeTemplateLoader(BaseLoader):
             template = template[8:]
         try:
             themename, templatename = template.split("/", 1)
-            ctx = stack.top
-            theme = ctx.app.theme_manager.themes[themename]
+            theme = current_app.theme_manager.themes[themename]
         except (ValueError, KeyError):
             raise TemplateNotFound(template)
         try:
@@ -275,9 +267,8 @@ class ThemeTemplateLoader(BaseLoader):
 
     def list_templates(self):
         res = []
-        ctx = stack.top
         fmt = "_themes/%s/%s"
-        for ident, theme in iteritems(ctx.app.theme_manager.themes):
+        for ident, theme in current_app.theme_manager.themes.items():
             res.extend((fmt % (ident, t)) for t in theme.jinja_loader.list_templates())
         return res
 
@@ -304,7 +295,7 @@ class Themes:
         making it super easy.
 
         :param app: the `~flask.Flask` instance to setup themes for.
-        :param \*\*kwargs: keyword args to pass through to init_themes
+        :param kwargs: keyword args to pass through to init_themes
         """
         if app is not None:
             self._app = app
@@ -406,7 +397,7 @@ class ThemeManager(object):
         """
         This yields all the `Theme` objects, in sorted order.
         """
-        return sorted(itervalues(self.themes), key=attrgetter("identifier"))
+        return sorted(self.themes.values(), key=attrgetter("identifier"))
 
     def bind_app(self, app):
         """

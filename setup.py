@@ -21,7 +21,7 @@ version_line = re.search(
 version = str(ast.literal_eval(version_line))
 long_description = read("README.md")
 
-requires = ["Flask>=0.6", "simplejson"]
+requires = ["Flask>=2.0"]
 
 setup(
     name="Flask-Themes2",
