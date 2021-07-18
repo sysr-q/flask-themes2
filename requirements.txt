@@ -1,2 +1,5 @@
-Flask>=0.6
-simplejson
+Flask>=2.0
+Sphinx
+tox
+pytest
+pytest-cov
