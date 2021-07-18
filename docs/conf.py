@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.abspath("_themes"))
 # -- Project information -----------------------------------------------------
 
 project = "Flask-Themes2"
-copyright = ' 2013 Christopher "plausibility" Carter, 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier'
-author = 'Christopher "plausibility" Carter, Drew Lustro, Matthew "LeafStorm" Frazier'
+copyright = '2013-2021 Chris Carter, 2021 Peter Justin, 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier'
+author = 'Chris Carter, Peter Justin, Drew Lustro, Matthew "LeafStorm" Frazier'
 
 
 # -- General configuration ---------------------------------------------------

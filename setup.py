@@ -39,8 +39,9 @@ setup(
     install_requires=requires,
     tests_require="pytest",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
+        "Framework :: Flask",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",

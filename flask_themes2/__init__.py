@@ -11,7 +11,9 @@ It takes care of:
 - Serving their static media
 - Letting themes reference their templates and static media
 
-:copyright: 2013 Christopher Carter, 2012 Drew Lustro,
+:copyright: 2013-2021 Chris Carter
+            2021 Peter Justin
+            2012 Drew Lustro
             2010 Matthew "LeafStorm" Frazier
 :license:   MIT/X11, see LICENSE for details
 """
@@ -39,7 +41,7 @@ from jinja2 import pass_context
 from jinja2.loaders import BaseLoader, FileSystemLoader, TemplateNotFound
 from werkzeug.utils import cached_property
 
-__version__ = "0.1.5"
+__version__ = "1.0.0"
 
 
 IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
