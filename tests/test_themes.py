@@ -3,7 +3,6 @@ test-themes.py
 ==============
 This tests the Flask-Themes2 extension.
 """
-from __future__ import with_statement
 
 import os
 from importlib import reload
@@ -17,11 +16,12 @@ TESTS = os.path.dirname(__file__)
 
 def import_flask_themes2():
     import flask_themes2
+
     flask_themes2 = reload(flask_themes2)
     return flask_themes2
 
 
-class TestThemeObject(object):
+class TestThemeObject:
     def test_theme(self):
         flask_themes2 = import_flask_themes2()
         path = os.path.join(TESTS, "themes", "cool")
@@ -41,12 +41,12 @@ class TestThemeObject(object):
         assert plain.license_text.strip() == "The license."
 
 
-class TestLoaders(object):
+class TestLoaders:
     def test_load_themes_from(self):
         flask_themes2 = import_flask_themes2()
         path = os.path.join(TESTS, "themes")
         themes_iter = flask_themes2.load_themes_from(path)
-        themes = list(sorted(themes_iter, key=attrgetter("identifier")))
+        themes = sorted(themes_iter, key=attrgetter("identifier"))
         assert themes[0].identifier == "cool"
         assert themes[1].identifier == "notthis"
         assert themes[2].identifier == "plain"
@@ -55,7 +55,7 @@ class TestLoaders(object):
         flask_themes2 = import_flask_themes2()
         app = Flask(__name__)
         themes_iter = flask_themes2.packaged_themes_loader(app)
-        themes = list(sorted(themes_iter, key=attrgetter("identifier")))
+        themes = sorted(themes_iter, key=attrgetter("identifier"))
         assert themes[0].identifier == "cool"
         assert themes[1].identifier == "notthis"
         assert themes[2].identifier == "plain"
@@ -68,7 +68,7 @@ class TestLoaders(object):
         assert themes[0].identifier == "cool"
 
 
-class TestSetup(object):
+class TestSetup:
     def test_manager(self):
         flask_themes2 = import_flask_themes2()
         app = Flask(__name__)
@@ -111,11 +111,11 @@ class TestSetup(object):
                 pass
             else:
                 raise AssertionError(
-                    "Getting a nonexistent theme should " "raise KeyError"
+                    "Getting a nonexistent theme should raise KeyError"
                 )
 
 
-class TestStatic(object):
+class TestStatic:
     def test_static_file_url(self):
         flask_themes2 = import_flask_themes2()
         app = Flask(__name__)
@@ -128,7 +128,7 @@ class TestStatic(object):
             assert url == genurl
 
 
-class TestTemplates(object):
+class TestTemplates:
     def test_template_exists(self):
         flask_themes2 = import_flask_themes2()
         app = Flask(__name__)
@@ -210,7 +210,7 @@ class TestTemplates(object):
                 pass
             else:
                 raise AssertionError(
-                    "Rendering static.html should have " "caused a RuntimeError"
+                    "Rendering static.html should have caused a RuntimeError"
                 )
 
     def test_theme_include_static(self):

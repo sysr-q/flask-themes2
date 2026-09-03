@@ -4,3 +4,4 @@ include base_theme/static/*
 include base_theme/templates/*
 include new-theme.py
 include README.rst
+include flask_themes2/py.typed

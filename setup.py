@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import os
 import ast
+import os
 import re
 
 from setuptools import setup
@@ -35,6 +35,7 @@ setup(
     long_description_content_type="text/markdown",
     keywords="flask themes theming style",
     packages=["flask_themes2"],
+    package_data={"flask_themes2": ["py.typed"]},
     zip_safe=False,
     install_requires=requires,
     tests_require="pytest",
