@@ -195,7 +195,7 @@ class TestTemplates:
             cooldata = flask_themes2.render_theme_template(
                 "cool", "static.html"
             ).strip()
-            assert cooldata == "Cool Blue v2, %s" % coolurl
+            assert cooldata == f"Cool Blue v2, {coolurl}"
 
     def test_theme_static_outside(self):
         flask_themes2 = import_flask_themes2()
@@ -222,4 +222,4 @@ class TestTemplates:
         with app.test_request_context("/"):
             data = render_template("static_parent.html").strip()
             url = flask_themes2.static_file_url("plain", "style.css")
-            assert data == "Application, Plain, %s" % url
+            assert data == f"Application, Plain, {url}"

@@ -200,7 +200,9 @@ The first is simply a quicker way of the second, as it will automatically call `
 
 This does three things:
 
-* Adds a `ThemeManager` instance to your application as `app.theme_manager`.
+* Adds a `ThemeManager` instance to your application as
+  ``app.extensions["themes"]``.  It is also set as `app.theme_manager`, which is
+  kept for backwards compatibility.
 * Registers the ``theme`` and ``theme_static`` globals with the Jinja2
   environment.
 * Registers the ``_themes`` module or blueprint (depending on the Flask version)
@@ -332,6 +334,8 @@ This API documentation is automatically generated from the source code.
 
 Loading Themes
 --------------
+.. autofunction:: get_theme_manager
+
 .. autoclass:: ThemeManager
    :members:
 

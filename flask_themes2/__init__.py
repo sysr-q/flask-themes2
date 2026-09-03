@@ -27,7 +27,7 @@ from collections.abc import Container
 
 # Yarg, here be pirates!
 from operator import attrgetter
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from flask import (
     Blueprint,
@@ -55,11 +55,6 @@ if TYPE_CHECKING:
     #: of the `Theme` instances it could find for it.
     ThemeLoader = Callable[[Flask], Iterable["Theme"]]
 
-    class _ThemedApp(Protocol):
-        """An app that a `ThemeManager` has been bound to."""
-
-        theme_manager: ThemeManager
-
 
 __version__ = "1.0.1"
 
@@ -76,13 +71,19 @@ def starchain(i: Iterable[Iterable[_T]]) -> Iterator[_T]:
     return itertools.chain(*i)
 
 
-def theme_manager(app: Flask) -> ThemeManager:
-    """
-    This returns the `ThemeManager` that was bound to the given app.
+def get_theme_manager(app: Flask | None = None) -> ThemeManager:
+    """Gets the application-specific ThemeManager.
 
-    :param app: A `~flask.Flask` instance that themes were set up for.
+    :param app: The `~flask.Flask` application. Defaults to the current app.
     """
-    return cast("_ThemedApp", app).theme_manager
+    if app is None:
+        app = current_app
+
+    if "themes" not in app.extensions:
+        raise RuntimeError("Flask-Themes2 not configured against current app")
+
+    manager: ThemeManager = app.extensions["themes"]
+    return manager
 
 
 def active_theme(ctx: Context) -> str:
@@ -134,15 +135,13 @@ def static_file_url(theme: Theme | str, filename: str, external: bool = False) -
     :param external: Whether the link should be external or not. Defaults to
                      `False`.
     """
-    from flask import current_app as app
-
     if isinstance(theme, Theme):
         theme = theme.identifier
 
     # raises KeyError if the theme is not loaded
     get_theme(theme)
 
-    if app.theme_manager.static_folder:
+    if get_theme_manager().static_folder:
         return url_for(
             "_themes.static",
             filename=theme + "/" + filename,
@@ -197,7 +196,7 @@ def get_theme(ident: str) -> Theme:
 
     :param ident: The theme identifier.
     """
-    return current_app.theme_manager.themes[ident]
+    return get_theme_manager().themes[ident]
 
 
 def get_themes_list() -> list[Theme]:
@@ -205,12 +204,12 @@ def get_themes_list() -> list[Theme]:
     This returns a list of all the themes in the current app's theme manager,
     sorted by identifier.
     """
-    return list(current_app.theme_manager.list_themes())
+    return list(get_theme_manager().list_themes())
 
 
 def static(themeid: str, filename: str) -> Response:
     try:
-        theme = current_app.theme_manager.themes[themeid]
+        theme = get_theme_manager().themes[themeid]
     except KeyError:
         abort(404)
     return send_from_directory(theme.static_path, filename)
@@ -296,7 +295,7 @@ class ThemeTemplateLoader(BaseLoader):
             template = template[8:]
         try:
             themename, templatename = template.split("/", 1)
-            theme = current_app.theme_manager.themes[themename]
+            theme = get_theme_manager().themes[themename]
         except (ValueError, KeyError):
             raise TemplateNotFound(template)
         try:
@@ -307,15 +306,21 @@ class ThemeTemplateLoader(BaseLoader):
     def list_templates(self) -> list[str]:
         res: list[str] = []
         fmt = "_themes/%s/%s"
-        for ident, theme in current_app.theme_manager.themes.items():
+        for ident, theme in get_theme_manager().themes.items():
             res.extend((fmt % (ident, t)) for t in theme.jinja_loader.list_templates())
         return res
 
 
 #########################################################################
 
-themes_blueprint = Blueprint("_themes", __name__)
-themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
+
+class _ThemesBlueprint(Blueprint):
+    @cached_property
+    def jinja_loader(self) -> BaseLoader:
+        return ThemeTemplateLoader(True)
+
+
+themes_blueprint = _ThemesBlueprint("_themes", __name__)
 
 
 class Themes:
@@ -343,9 +348,9 @@ class Themes:
     def init_themes(
         self,
         app: Flask,
-        loaders=None,
+        loaders: Iterable[ThemeLoader] | None = None,
         app_identifier: str | None = None,
-        manager_cls=None,
+        manager_cls: type[ThemeManager] | None = None,
         theme_url_prefix: str = "/_themes",
         static_folder: str | None = None,
     ) -> None:
@@ -387,7 +392,7 @@ class Themes:
         app.register_blueprint(themes_blueprint)
 
 
-class ThemeManager(object):
+class ThemeManager:
     """
     This is responsible for loading and storing all the themes for an
     application. Calling `refresh` will cause it to invoke all of the theme
@@ -412,6 +417,7 @@ class ThemeManager(object):
         self,
         app: Flask,
         app_identifier: str,
+        loaders: Iterable[ThemeLoader] | None = None,
         static_folder: str | None = None,
     ) -> None:
         self.bind_app(app)
@@ -421,7 +427,7 @@ class ThemeManager(object):
         self._themes: dict[str, Theme] | None = None
 
         #: This is a list of the loaders that will be used to load the themes.
-        self.loaders = []
+        self.loaders: list[ThemeLoader] = []
         if loaders:
             self.loaders.extend(loaders)
         else:
@@ -452,7 +458,10 @@ class ThemeManager(object):
         :param app: A `~flask.Flask` instance.
         """
         self.app = app
-        app.theme_manager = self
+        app.extensions["themes"] = self
+
+        # kept for backwards compatibility, use get_theme_manager() instead
+        app.theme_manager = self  # type: ignore[attr-defined]
 
     def valid_app_id(self, app_identifier: str) -> bool:
         """

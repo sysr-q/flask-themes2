@@ -11,10 +11,15 @@ A sandbox to play around with themes in.
 from operator import attrgetter
 
 import yaml
-from flask import Flask, Markup, abort, redirect, session, url_for
+from flask import Flask, abort, redirect, session, url_for
+from markupsafe import Markup
 
-# from flask.ext.themes2 import (setup_themes, render_theme_template, get_themes_list)
-from flask.ext.themes2 import Themes, get_themes_list, render_theme_template
+from flask_themes2 import (
+    Themes,
+    get_theme_manager,
+    get_themes_list,
+    render_theme_template,
+)
 
 # default settings
 
@@ -41,9 +46,7 @@ class Post:
 
     @property
     def content(self):
-        return Markup(
-            "\n\n".join("<p>%s</p>" % line for line in self.body.splitlines())
-        )
+        return Markup("\n\n".join(f"<p>{line}</p>" for line in self.body.splitlines()))
 
 
 class PostStore:
@@ -115,7 +118,7 @@ def themes():
 
 @app.route("/themes/<ident>")
 def settheme(ident):
-    if ident not in app.theme_manager.themes:
+    if ident not in get_theme_manager().themes:
         abort(404)
     session["theme"] = ident
     return redirect(url_for("themes"))
@@ -123,7 +126,7 @@ def settheme(ident):
 
 @app.route("/refresh")
 def refresh():
-    app.theme_manager.refresh()
+    get_theme_manager().refresh()
     return redirect(url_for("themes"))
 
 
