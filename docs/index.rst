@@ -182,7 +182,7 @@ Tips for Theme Writers
 
 Using Themes in Your Application
 ================================
-To set up your application to use themes, you need to use `Themes` (``flask.ext.themes2.Themes``),
+To set up your application to use themes, you need to use `Themes` (``flask_themes2.Themes``),
 in one of two ways:
 
 .. code-block:: python

@@ -8,9 +8,9 @@ A sandbox to play around with themes in.
 :license:   MIT/X11, see LICENSE for details
 """
 
+import tomllib
 from operator import attrgetter
 
-import yaml
 from flask import abort
 from flask import Flask
 from flask import redirect
@@ -68,8 +68,8 @@ class PostStore:
 
 store = PostStore()
 
-with app.open_resource("posts.yaml") as fd:
-    post_data = yaml.load_all(fd)
+with app.open_resource("posts.toml") as fd:
+    post_data = tomllib.load(fd)["posts"]
     store.add_posts(post_data)
 
 

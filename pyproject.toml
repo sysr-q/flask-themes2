@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "flask>=2.0",
 ]
@@ -122,20 +122,20 @@ filterwarnings = [
 ]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["src/flask_themes2/"]
 warn_unused_configs = true
 strict = true
 
 [tool.pyright]
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 include = ["src"]
 typeCheckingMode = "standard"
 
 
 [tool.tox]
 env_list = [
-    "py3.14", "py3.13", "py3.12", "py3.11", "py3.10",
+    "py3.14", "py3.13", "py3.12", "py3.11",
     "style",
     "typing",
     "docs",
