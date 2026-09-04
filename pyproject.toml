@@ -54,6 +54,9 @@ typing = [
     "pyright",
     "pytest",
 ]
+gha-update = [
+    "gha-update ; python_full_version >= '3.12'",
+]
 
 [build-system]
 requires = ["flit_core>=3.11,<5"]
@@ -182,6 +185,13 @@ commands = [[
     "--builder", "dirhtml",
     "{[tool.tox.docs]docs_dir}", "{[tool.tox.docs]build_dir}{/}dirhtml",
 ]]
+
+[tool.tox.env.update-actions]
+description = "update GitHub Actions pins"
+labels = ["update"]
+dependency_groups = ["gha-update"]
+skip_install = true
+commands = [["gha-update"]]
 
 [tool.tox.env.update-pre_commit]
 description = "update pre-commit pins"
