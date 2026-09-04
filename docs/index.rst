@@ -182,7 +182,7 @@ Tips for Theme Writers
 
 Using Themes in Your Application
 ================================
-To set up your application to use themes, you need to use `Themes` (``flask.ext.themes2.Themes``),
+To set up your application to use themes, you need to use `Themes` (``flask_themes2.Themes``),
 in one of two ways:
 
 .. code-block:: python
@@ -200,7 +200,9 @@ The first is simply a quicker way of the second, as it will automatically call `
 
 This does three things:
 
-* Adds a `ThemeManager` instance to your application as `app.theme_manager`.
+* Adds a `ThemeManager` instance to your application as
+  ``app.extensions["themes"]``.  It is also set as `app.theme_manager`, which is
+  kept for backwards compatibility.
 * Registers the ``theme`` and ``theme_static`` globals with the Jinja2
   environment.
 * Registers the ``_themes`` module or blueprint (depending on the Flask version)
@@ -282,13 +284,13 @@ renders the template. For example:
         else:
             ident = current_app.config.get('DEFAULT_THEME', 'plain')
         return get_theme(ident)
-    
+
     def render(template, **context):
         return render_theme_template(get_current_theme(), template, **context)
 
 
 .. warning::
-   
+
    Make sure that you *only* get `Theme` instances from the theme manager. If
    you need to create a `Theme` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
@@ -332,6 +334,8 @@ This API documentation is automatically generated from the source code.
 
 Loading Themes
 --------------
+.. autofunction:: get_theme_manager
+
 .. autoclass:: ThemeManager
    :members:
 

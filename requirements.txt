@@ -1,5 +1,0 @@
-Flask>=2.0
-Sphinx
-tox
-pytest
-pytest-cov
