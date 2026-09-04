@@ -1,37 +1,28 @@
-*.py[cod]
-
-# C extensions
-*.so
-
-# Packages
+# general things to ignore
+build/
+dist/
+*.egg-info/
 *.egg
-*.egg-info
-dist
-build
-.eggs
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-_build
+*.eggs
+*.py[cod]
+__pycache__/
+*.so
+*~
+venv/
+env/
+.DS_Store
+*.swp
+docs/_build
 
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
+# due to using t/nox and pytest
 .tox
-nosetests.xml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
+.cache
+.pytest_cache
+.coverage
+htmlcov/
+.xprocess
+.vscode
+.idea
+.venv
+.mypy_cache
+.ruff_cache

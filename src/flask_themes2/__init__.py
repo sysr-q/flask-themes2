@@ -27,27 +27,33 @@ from collections.abc import Container
 
 # Yarg, here be pirates!
 from operator import attrgetter
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import Any
+from typing import cast
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
-from flask import (
-    Blueprint,
-    abort,
-    current_app,
-    json,
-    render_template,
-    send_from_directory,
-    url_for,
-)
+from flask import abort
+from flask import Blueprint
+from flask import current_app
+from flask import json
+from flask import render_template
+from flask import send_from_directory
+from flask import url_for
 
 # Support >= Jinja 3.1
-from jinja2 import TemplateNotFound, pass_context
-from jinja2.loaders import BaseLoader, FileSystemLoader
+from jinja2 import pass_context
+from jinja2 import TemplateNotFound
+from jinja2.loaders import BaseLoader
+from jinja2.loaders import FileSystemLoader
 from werkzeug.utils import cached_property
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Iterator
+    from collections.abc import Callable
+    from collections.abc import Iterable
+    from collections.abc import Iterator
 
-    from flask import Flask, Response
+    from flask import Flask
+    from flask import Response
     from jinja2 import Environment
     from jinja2.runtime import Context
 
@@ -297,11 +303,11 @@ class ThemeTemplateLoader(BaseLoader):
             themename, templatename = template.split("/", 1)
             theme = get_theme_manager().themes[themename]
         except (ValueError, KeyError):
-            raise TemplateNotFound(template)
+            raise TemplateNotFound(template) from None
         try:
             return theme.jinja_loader.get_source(environment, templatename)
         except TemplateNotFound:
-            raise TemplateNotFound(template)
+            raise TemplateNotFound(template) from None
 
     def list_templates(self) -> list[str]:
         res: list[str] = []

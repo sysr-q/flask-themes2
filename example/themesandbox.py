@@ -11,15 +11,17 @@ A sandbox to play around with themes in.
 from operator import attrgetter
 
 import yaml
-from flask import Flask, abort, redirect, session, url_for
+from flask import abort
+from flask import Flask
+from flask import redirect
+from flask import session
+from flask import url_for
 from markupsafe import Markup
 
-from flask_themes2 import (
-    Themes,
-    get_theme_manager,
-    get_themes_list,
-    render_theme_template,
-)
+from flask_themes2 import get_theme_manager
+from flask_themes2 import get_themes_list
+from flask_themes2 import render_theme_template
+from flask_themes2 import Themes
 
 # default settings
 

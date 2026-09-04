@@ -8,7 +8,9 @@ import os
 from importlib import reload
 from operator import attrgetter
 
-from flask import Flask, render_template, url_for
+from flask import Flask
+from flask import render_template
+from flask import url_for
 from jinja2 import FileSystemLoader
 
 TESTS = os.path.dirname(__file__)

@@ -19,7 +19,10 @@ sys.path.insert(0, os.path.abspath("_themes"))
 # -- Project information -----------------------------------------------------
 
 project = "Flask-Themes2"
-copyright = '2013-2021 Chris Carter, 2021 Peter Justin, 2012 Drew Lustro, 2010 Matthew "LeafStorm" Frazier'
+copyright = (
+    "2013-2021 Chris Carter, 2021 Peter Justin, 2012 Drew Lustro, "
+    '2010 Matthew "LeafStorm" Frazier'
+)
 author = 'Chris Carter, Peter Justin, Drew Lustro, Matthew "LeafStorm" Frazier'
 
 
@@ -62,12 +65,7 @@ html_theme_options = {
     },
 }
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
-
 intersphinx_mapping = {
-    "https://docs.python.org/": None,
-    "https://flask.palletsprojects.com/": None,
+    "python": ("https://docs.python.org/3/", None),
+    "flask": ("https://flask.palletsprojects.com/", None),
 }

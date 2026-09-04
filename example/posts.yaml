@@ -36,7 +36,7 @@ body: >
     to emulate a weblog. Of course, to save on time and effort, all the posts
     are pregenerated, and the application is just displaying them. But still,
     it gives people a chance to see how themes are implemented.
-    
+
     There are some templates by default, but they aren't particularly shiny.
     You will want to set a theme if you want the blog to look good.
 
@@ -49,16 +49,16 @@ body: >
     With the Theme Sandbox, probably the easiest way to create a theme is just
     to drop it in the "themes/" folder. You can set THEME_PATHS in the
     configuration, but that is still the easiest.
-    
+
     To actually create a theme, you will need to check the manual for details.
     But it essentially boils down to:
-    
+
     An info.json file that contains metadata about the theme,
-    
+
     A templates/ folder that contains the theme's Jinja2 templates.
-    
+
     A static/ folder containing static files to be served.
-    
+
     A license.txt file (optional) containing the theme's complete license.
 
 ---
@@ -71,7 +71,7 @@ body: >
     I didn't implement all its features, like options for themes, simply
     because those are tied in to Zine's particular mode of configuration, and
     applications will probably have their own.
-    
+
     One person asked if it was inspired by Deliverance. I looked it up, and
     thought that it looked confusing. But basically, the differences are that
     Flask-Themes2 is for single applications, Deliverance is for multiple
@@ -86,23 +86,23 @@ created: 2010-07-01 11:00:00
 title: Templates
 body: >
     The templates used by this site are:
-    
+
     layout.html, which should have a "body" block and a "head" block (where
     "head" is in the HTML head element), and should expect an exported
     variable named "title" that is the page's title.
-    
+
     index.html, which accepts a "posts" variable that contains three posts.
-    
+
     _helpers.html, which exports a "link_to" macro that takes a caption, an
     endpoint, and keyword arguments.
-    
+
     archive.html, which accepts a "posts" variable that contains *all* of the
     posts.
-    
+
     post.html, which accepts a single "post".
-    
+
     about.html, which accepts "text", the about text as Markup.
-    
+
     themes.html, which accepts a list of themes and should create links to
     "settheme" for each of them.
 
@@ -115,6 +115,6 @@ body: >
     The blog probably seems pretty small to you. And that's the idea - have a
     dataset just big enough to simulate real-world usage. But if you want, you
     can add more posts.
-    
+
     All the posts are stored in the posts.yaml file. You can add them there.
     Slugs must be unique, but that's about the only restriction.

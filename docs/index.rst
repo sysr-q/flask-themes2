@@ -284,13 +284,13 @@ renders the template. For example:
         else:
             ident = current_app.config.get('DEFAULT_THEME', 'plain')
         return get_theme(ident)
-    
+
     def render(template, **context):
         return render_theme_template(get_current_theme(), template, **context)
 
 
 .. warning::
-   
+
    Make sure that you *only* get `Theme` instances from the theme manager. If
    you need to create a `Theme` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
