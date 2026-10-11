@@ -3,10 +3,12 @@
 # copyright 2013 Christopher Carter, 2010 Matthew "LeafStorm" Frazier
 # licensed under the MIT/X11 license (see LICENSE for details)
 
-slug: additional-rewrites
-created: 2013-11-01 18:00:00
-title: Additional rewrites and forking
-body: >
+
+[[posts]]
+slug = "additional-rewrites"
+created = 2013-11-01T18:00:00
+title = "Additional rewrites and forking"
+body = """
     Since LeafStorm hadn't updated Flask-Themes in several years
     (the last update was in 2011 or so, mind you), it was picked up
     by a guy named <a href="https://github.com/drewlustro">Drew Lustro</a>
@@ -25,96 +27,97 @@ body: >
 
     You probably already know this, but you can find Flask-Themes2 at my GitHub repo,
     <a href="https://github.com/plausibility/Flask-Themes2">plausibility/Flask-Themes2</a>!
+"""
 
----
-
-slug: introduction
-created: 2010-07-01 16:00:00
-title: Introduction
-body: >
+[[posts]]
+slug = "introduction"
+created = 2010-07-01T16:00:00
+title = "Introduction"
+body = """
     Welcome to the Theme Sandbox. This is a simple Web application intended
     to emulate a weblog. Of course, to save on time and effort, all the posts
     are pregenerated, and the application is just displaying them. But still,
     it gives people a chance to see how themes are implemented.
-    
+
     There are some templates by default, but they aren't particularly shiny.
     You will want to set a theme if you want the blog to look good.
+"""
 
----
-
-slug: creating-themes
-created: 2010-07-01 14:00:00
-title: Creating Themes
-body: >
+[[posts]]
+slug = "creating-themes"
+created = 2010-07-01T14:00:00
+title = "Creating Themes"
+body = """
     With the Theme Sandbox, probably the easiest way to create a theme is just
     to drop it in the "themes/" folder. You can set THEME_PATHS in the
     configuration, but that is still the easiest.
-    
+
     To actually create a theme, you will need to check the manual for details.
     But it essentially boils down to:
-    
+
     An info.json file that contains metadata about the theme,
-    
+
     A templates/ folder that contains the theme's Jinja2 templates.
-    
+
     A static/ folder containing static files to be served.
-    
+
     A license.txt file (optional) containing the theme's complete license.
+"""
 
----
-
-slug: inspirations
-created: 2010-07-01 13:00:00
-title: Theme System Inspirations
-body: >
+[[posts]]
+slug = "inspirations"
+created = 2010-07-01T13:00:00
+title = "Theme System Inspirations"
+body = """
     My primary inspiration for the theme system was the blogging system Zine.
     I didn't implement all its features, like options for themes, simply
     because those are tied in to Zine's particular mode of configuration, and
     applications will probably have their own.
-    
+
     One person asked if it was inspired by Deliverance. I looked it up, and
     thought that it looked confusing. But basically, the differences are that
     Flask-Themes2 is for single applications, Deliverance is for multiple
     applications. Flask-Themes2 works at the template level, Deliverance works
     at the HTML level. Flask-Themes doesn't deal with HTML/XML, while
     Deliverance does.
+"""
 
----
-
-slug: templates
-created: 2010-07-01 11:00:00
-title: Templates
-body: >
+[[posts]]
+slug = "templates"
+created = 2010-07-01T11:00:00
+title = "Templates"
+body = """
     The templates used by this site are:
-    
+
     layout.html, which should have a "body" block and a "head" block (where
     "head" is in the HTML head element), and should expect an exported
     variable named "title" that is the page's title.
-    
+
     index.html, which accepts a "posts" variable that contains three posts.
-    
+
     _helpers.html, which exports a "link_to" macro that takes a caption, an
     endpoint, and keyword arguments.
-    
+
     archive.html, which accepts a "posts" variable that contains *all* of the
     posts.
-    
+
     post.html, which accepts a single "post".
-    
+
     about.html, which accepts "text", the about text as Markup.
-    
+
     themes.html, which accepts a list of themes and should create links to
     "settheme" for each of them.
+"""
 
----
-
-slug: adding-posts
-created: 2010-07-01 9:00:00
-title: Adding Posts
-body: >
+[[posts]]
+slug = "adding-posts"
+created = 2010-07-01T09:00:00
+title = "Adding Posts"
+body = """
     The blog probably seems pretty small to you. And that's the idea - have a
     dataset just big enough to simulate real-world usage. But if you want, you
     can add more posts.
-    
+
     All the posts are stored in the posts.yaml file. You can add them there.
     Slugs must be unique, but that's about the only restriction.
+"""
