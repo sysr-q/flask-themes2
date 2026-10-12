@@ -8,7 +8,7 @@ Flask-Themes2 is a fork of Spirits, which is in turn a fork of Flask-Themes.
 - [Flask-Themes2](https://github.com/sysr-q/flask-themes2) maintained by Chris Carter et al.
 - [Spirits](https://github.com/drewlustro/spirits) maintained by Drew Lustro
 - [Flask-Themes](https://bitbucket.org/leafstorm/flask-themes) by Matthew "LeafStorm" Frazier
-- Many more contributors to this fork and all others! It wouldn't be this good without you.
+- [Many more contributors](CONTRIBUTORS.md) to this fork and all others! It wouldn't be this good without you.
 
 This provides infrastructure for themes in Flask >= 2.0.
 
