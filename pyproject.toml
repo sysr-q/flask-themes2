@@ -67,7 +67,6 @@ name = "flask_themes2"
 
 [tool.flit.sdist]
 include = [
-    "base_theme/",
     "docs/",
     "example/",
     "tests/",

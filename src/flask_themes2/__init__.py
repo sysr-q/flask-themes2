@@ -10,7 +10,7 @@ It takes care of:
 - Serving their static media
 - Letting themes reference their templates and static media
 
-:copyright: 2013-2023 Chris Carter
+:copyright: 2013-2026 Chris Carter, <sh4nks>
             2023 <ruby0b>
             2021 Peter Justin
             2012 Drew Lustro
@@ -60,7 +60,7 @@ if TYPE_CHECKING:
     ThemeLoader = Callable[[Flask], Iterable["Theme"]]
 
 
-__version__ = "1.0.1"
+__version__ = "2.0.0"
 
 _T = TypeVar("_T")
 

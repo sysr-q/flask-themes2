@@ -1,14 +1,81 @@
 name: Publish
 on:
   push:
-    tags: ['*']
+    tags: ['[0-9]*.[0-9]*.[0-9]*']
 permissions: {}
 concurrency:
-  group: publish-${{ github.event.push.ref }}
-  cancel-in-progress: true
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Check release tag against package version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import ast
+          import os
+          import re
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"]
+          if not re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", tag):
+              raise SystemExit(f"Invalid release tag: {tag!r}; expected MAJOR.MINOR.PATCH")
+
+          source = Path("src/flask_themes2/__init__.py")
+          module = ast.parse(source.read_text(encoding="utf-8"))
+          versions = [
+              ast.literal_eval(node.value)
+              for node in module.body
+              if isinstance(node, ast.Assign)
+              and any(isinstance(target, ast.Name) and target.id == "__version__"
+                      for target in node.targets)
+          ]
+          if versions != [tag]:
+              raise SystemExit(f"Tag {tag!r} does not match __version__: {versions!r}")
+          print(f"Validated release {tag}")
+          PY
+  checks:
+    needs: [validate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { python: "3.11", tox: "py3.11" }
+          - { python: "3.12", tox: "py3.12" }
+          - { python: "3.13", tox: "py3.13" }
+          - { python: "3.14", tox: "py3.14" }
+          - { python: "3.14", tox: "style" }
+          - { python: "3.14", tox: "typing" }
+          - { python: "3.14", tox: "docs" }
+    name: Check ${{ matrix.tox }}
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - run: uv python install "${{ matrix.python }}"
+      - run: uv run --locked --no-default-groups --group tox tox run -e "${{ matrix.tox }}"
+  build:
+    needs: [checks]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       artifact-id: ${{ steps.upload-artifact.outputs.artifact-id }}
     steps:
@@ -24,6 +91,7 @@ jobs:
           python-version-file: pyproject.toml
       - run: echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
       - run: uv build
+      - run: uvx twine check dist/*
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload-artifact
         with:
@@ -31,7 +99,7 @@ jobs:
           path: dist/
           if-no-files-found: error
   create-release:
-    needs: [build]
+    needs: [build, publish-pypi]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -41,7 +109,7 @@ jobs:
           artifact-ids: ${{ needs.build.outputs.artifact-id }}
           path: dist/
       - name: create release
-        run: gh release create --draft --repo ${GITHUB_REPOSITORY} ${GITHUB_REF_NAME} dist/*
+        run: gh release create --draft --verify-tag --repo "${GITHUB_REPOSITORY}" "${GITHUB_REF_NAME}" dist/*
         env:
           GH_TOKEN: ${{ github.token }}
   publish-pypi:
@@ -60,3 +128,4 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           packages-dir: "dist/"
+
