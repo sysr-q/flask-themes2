@@ -348,9 +348,6 @@ class _ThemesBlueprint(Blueprint):
         return ThemeTemplateLoader(True)
 
 
-themes_blueprint = _ThemesBlueprint("_themes", __name__)
-
-
 class Themes:
     """
     This is the main class you will use to interact
@@ -406,13 +403,19 @@ class Themes:
         app.jinja_env.globals["theme_static"] = global_theme_static
         app.jinja_env.globals["theme_get_info"] = global_theme_get_info
 
+        # A blueprint can only be configured before its first registration,
+        # so every app gets its own instead of sharing a module-level one.
         if static_folder:
-            themes_blueprint.static_folder = static_folder
-            themes_blueprint.static_url_path = (
-                f"{app.static_url_path or ''}{theme_url_prefix}"
+            themes_blueprint = _ThemesBlueprint(
+                "_themes",
+                __name__,
+                static_folder=static_folder,
+                static_url_path=f"{app.static_url_path or ''}{theme_url_prefix}",
             )
         else:
-            themes_blueprint.url_prefix = theme_url_prefix
+            themes_blueprint = _ThemesBlueprint(
+                "_themes", __name__, url_prefix=theme_url_prefix
+            )
             themes_blueprint.add_url_rule(
                 "/<themeid>/<path:filename>", "static", view_func=static
             )
@@ -508,9 +511,16 @@ class ThemeManager:
         are invoked in the order they are given, so later themes will override
         earlier ones. Any invalid themes found (for example, if the
         application identifier is incorrect) will be skipped.
+
+        The template lookup cache and Jinja's compiled template cache are
+        cleared as well, so templates edited on disk are reloaded even when
+        ``auto_reload`` is off.
         """
         self._themes = self._load_themes()
         self._template_exists_cache.clear()
+        jinja_cache = self.app.jinja_env.cache
+        if jinja_cache is not None:
+            jinja_cache.clear()
 
     def template_exists(self, templatename: str) -> bool:
         """
