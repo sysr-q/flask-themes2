@@ -289,13 +289,27 @@ def load_themes_from(path: str | os.PathLike[str]) -> Iterator[Theme]:
     :param path: The path to search for themes in.
     """
     for basename in (b for b in list_folders(path) if IDENTIFIER.match(b)):
+        theme_path = os.path.join(path, basename)
+        if not os.path.isfile(os.path.join(theme_path, "info.json")):
+            continue
         try:
-            t = Theme(os.path.join(path, basename))
-        except:  # noqa: E722, S110
-            pass
-        else:
-            if t.identifier == basename:
-                yield t
+            t = Theme(theme_path)
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            _logger.warning(
+                "Skipping theme %s: cannot read info.json (%s: %s)",
+                theme_path,
+                type(e).__name__,
+                e,
+            )
+            continue
+        if t.identifier != basename:
+            _logger.warning(
+                "Skipping theme %s: identifier %r does not match the folder name",
+                theme_path,
+                t.identifier,
+            )
+            continue
+        yield t
 
 
 def packaged_themes_loader(app: Flask) -> Iterable[Theme]:
