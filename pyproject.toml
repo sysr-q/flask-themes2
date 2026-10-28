@@ -24,6 +24,7 @@ dynamic = ["version"]
 [project.urls]
 Documentation = "https://flask-themes2.readthedocs.io"
 Source = "https://github.com/sysr-q/flask-themes2"
+Changes = "https://github.com/sysr-q/flask-themes2/blob/master/CHANGES.md"
 
 [dependency-groups]
 dev = [
@@ -67,6 +68,7 @@ name = "flask_themes2"
 
 [tool.flit.sdist]
 include = [
+    "CHANGES.md",
     "docs/",
     "example/",
     "tests/",

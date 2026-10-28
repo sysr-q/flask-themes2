@@ -77,6 +77,15 @@ function:
 
     <link rel=stylesheet href="{{ theme_static('style.css') }}">
 
+If the theme does not have the file, this returns the URL of the
+application's static file with the same name instead, so a theme only has to
+ship the files it changes. Pass ``fallback=false`` to always get the theme's
+own URL:
+
+.. sourcecode:: html+jinja
+
+    <link rel=stylesheet href="{{ theme_static('style.css', fallback=false) }}">
+
 If you want to get information about the currently active theme, you can do
 that with the `theme_get_info` function:
 
@@ -251,7 +260,8 @@ Rendering Templates
 Once you have the themes set up, you can call in to the theme machinery with
 `render_theme_template`. It works like `render_template`, but takes a ``theme``
 parameter before the template name. Also, `static_file_url` will generate a
-URL to the given static file.
+URL to the given static file, falling back to the application's static file
+when the theme does not have it.
 
 When you call `render_theme_template`, it sets the "active template" to the
 given theme, even if you have to fall back to rendering the application's
@@ -324,6 +334,10 @@ This API documentation is automatically generated from the source code.
   :members:
 
 .. autofunction:: render_theme_template
+
+.. autofunction:: template_exists
+
+.. autofunction:: get_theme_template_name
 
 .. autofunction:: static_file_url
 

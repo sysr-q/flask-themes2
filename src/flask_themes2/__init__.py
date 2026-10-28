@@ -21,6 +21,7 @@ It takes care of:
 from __future__ import annotations
 
 import itertools
+import logging
 import os
 import re
 from collections.abc import Container
@@ -43,6 +44,7 @@ from jinja2 import pass_context
 from jinja2 import TemplateNotFound
 from jinja2.loaders import BaseLoader
 from jinja2.loaders import FileSystemLoader
+from werkzeug.security import safe_join
 from werkzeug.utils import cached_property
 
 if TYPE_CHECKING:
@@ -65,6 +67,8 @@ __version__ = "2.0.0"
 _T = TypeVar("_T")
 
 IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+_logger = logging.getLogger(__name__)
 
 
 def containable(i: Iterable[_T]) -> Container[_T]:
@@ -110,9 +114,11 @@ def global_theme_template(
 
 
 @pass_context
-def global_theme_static(ctx: Context, filename: str, external: bool = False) -> str:
+def global_theme_static(
+    ctx: Context, filename: str, external: bool = False, fallback: bool = True
+) -> str:
     theme = active_theme(ctx)
-    return static_file_url(theme, filename, external)
+    return static_file_url(theme, filename, external, fallback)
 
 
 @pass_context
@@ -128,7 +134,9 @@ def global_theme_get_info(ctx: Context, attribute_name: str, fallback: Any = "")
     return theme.options.get(attribute_name, fallback)
 
 
-def static_file_url(theme: Theme | str, filename: str, external: bool = False) -> str:
+def static_file_url(
+    theme: Theme | str, filename: str, external: bool = False, fallback: bool = True
+) -> str:
     """
     This is a shortcut for getting the URL of a static file in a theme.
 
@@ -136,14 +144,25 @@ def static_file_url(theme: Theme | str, filename: str, external: bool = False) -
     :param filename: The name of the file.
     :param external: Whether the link should be external or not. Defaults to
                      `False`.
+    :param fallback: Whether to return the URL of the application's static
+                     file of the same name when the theme does not have the
+                     file. Defaults to `True`.
     """
     if isinstance(theme, Theme):
         theme = theme.identifier
 
+    manager = get_theme_manager()
     # raises KeyError if the theme is not loaded
     get_theme(theme)
 
-    if get_theme_manager().static_folder:
+    if (
+        fallback
+        and current_app.has_static_folder
+        and not manager.static_exists(theme, filename)
+    ):
+        return url_for("static", filename=filename, _external=external)
+
+    if manager.static_folder:
         return url_for(
             "_themes.static",
             filename=theme + "/" + filename,
@@ -457,6 +476,7 @@ class ThemeManager:
 
         self._themes: dict[str, Theme] | None = None
         self._template_exists_cache: dict[str, bool] = {}
+        self._static_exists_cache: dict[tuple[str, str], bool] = {}
 
         #: This is a list of the loaders that will be used to load the themes.
         self.loaders: list[ThemeLoader] = []
@@ -518,6 +538,7 @@ class ThemeManager:
         """
         self._themes = self._load_themes()
         self._template_exists_cache.clear()
+        self._static_exists_cache.clear()
         jinja_cache = self.app.jinja_env.cache
         if jinja_cache is not None:
             jinja_cache.clear()
@@ -558,11 +579,48 @@ class ThemeManager:
             return themed_name
         return template_name
 
+    def static_exists(self, theme: Theme | str, filename: str) -> bool:
+        """
+        This checks whether the given theme ships ``filename`` in its static
+        files. Lookups are cached like those of `template_exists`: bypassed
+        while the Jinja environment has ``auto_reload`` enabled and cleared
+        by `refresh`.
+
+        :param theme: Either the identifier of the theme or a `Theme`.
+        :param filename: The static file's name, relative to the theme's
+                         static folder.
+        """
+        if isinstance(theme, Theme):
+            theme = theme.identifier
+        if self.app.jinja_env.auto_reload:
+            return self._static_file_exists(theme, filename)
+        cache = self._static_exists_cache
+        key = (theme, filename)
+        try:
+            return cache[key]
+        except KeyError:
+            exists = cache[key] = self._static_file_exists(theme, filename)
+            return exists
+
+    def _static_file_exists(self, theme: str, filename: str) -> bool:
+        if self.static_folder:
+            path = safe_join(self.static_folder, theme, filename)
+        else:
+            path = safe_join(self.themes[theme].static_path, filename)
+        return path is not None and os.path.isfile(path)
+
     def _load_themes(self) -> dict[str, Theme]:
         themes: dict[str, Theme] = {}
         for theme in starchain(ldr(self.app) for ldr in self.loaders):
             if self.valid_app_id(theme.application):
                 themes[theme.identifier] = theme
+            else:
+                _logger.debug(
+                    "Skipping theme %s: it is for application %r, not %r",
+                    theme.path,
+                    theme.application,
+                    self.app_identifier,
+                )
         return themes
 
 

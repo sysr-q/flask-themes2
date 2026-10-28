@@ -5,6 +5,7 @@ This tests the Flask-Themes2 extension.
 """
 
 import json
+import logging
 import os
 from operator import attrgetter
 
@@ -89,6 +90,28 @@ class TestLoaders:
         themes = list(flask_themes2.theme_paths_loader(app))
         assert themes[0].identifier == "cool"
 
+    def test_load_themes_from_warns_about_broken_themes(self, tmp_path, caplog):
+        make_theme(tmp_path, "good", "")
+        (tmp_path / "notatheme").mkdir()
+        broken = make_theme(tmp_path, "broken", "")
+        (broken / "info.json").write_text("{not json")
+        incomplete = make_theme(tmp_path, "incomplete", "")
+        (incomplete / "info.json").write_text('{"identifier": "incomplete"}')
+        renamed = make_theme(tmp_path, "renamed", "")
+        info = json.loads((renamed / "info.json").read_text())
+        (renamed / "info.json").write_text(json.dumps(info | {"identifier": "other"}))
+
+        with caplog.at_level(logging.WARNING, logger="flask_themes2"):
+            themes = list(flask_themes2.load_themes_from(tmp_path))
+
+        assert [t.identifier for t in themes] == ["good"]
+        messages = "\n".join(caplog.messages)
+        assert str(broken) in messages and "JSONDecodeError" in messages
+        assert str(incomplete) in messages and "KeyError" in messages
+        assert str(renamed) in messages and "'other'" in messages
+        assert "notatheme" not in messages
+        assert len(caplog.records) == 3
+
 
 class TestSetup:
     def test_manager(self):
@@ -111,7 +134,9 @@ class TestSetup:
         assert "theme" in app.jinja_env.globals
         assert "theme_static" in app.jinja_env.globals
 
-    def test_setup_themes_on_multiple_apps(self):
+    def test_setup_themes_on_multiple_apps(self, tmp_path):
+        (tmp_path / "cool").mkdir()
+        (tmp_path / "cool" / "style.css").write_text("")
         first = Flask(__name__)
         first.config["THEME_PATHS"] = [os.path.join(TESTS, "morethemes")]
         flask_themes2.Themes(first, app_identifier="testing")
@@ -119,7 +144,7 @@ class TestSetup:
         flask_themes2.Themes(
             second,
             app_identifier="testing",
-            static_folder=os.path.join(TESTS, "morethemes"),
+            static_folder=str(tmp_path),
             theme_url_prefix="/skins",
         )
 
@@ -139,8 +164,8 @@ class TestSetup:
         flask_themes2.Themes(app, app_identifier="testing")
 
         with app.test_request_context("/"):
-            cool = app.theme_manager.themes["cool"]
-            plain = app.theme_manager.themes["plain"]
+            cool = flask_themes2.get_theme_manager(app).themes["cool"]
+            plain = flask_themes2.get_theme_manager(app).themes["plain"]
             assert flask_themes2.get_theme("cool") is cool
             assert flask_themes2.get_theme("plain") is plain
             tl = flask_themes2.get_themes_list()
@@ -166,6 +191,75 @@ class TestStatic:
             url = flask_themes2.static_file_url("cool", "style.css")
             genurl = url_for("_themes.static", themeid="cool", filename="style.css")
             assert url == genurl
+
+    def test_static_file_url_falls_back_to_app_static(self, tmp_path):
+        theme_path = make_theme(tmp_path, "partial", "")
+        (theme_path / "static" / "own.css").write_text("")
+        app_static = tmp_path / "static"
+        app_static.mkdir()
+        (app_static / "shared.css").write_text("")
+        app = Flask(__name__, static_folder=str(app_static))
+        app.config["THEME_PATHS"] = [str(tmp_path)]
+        flask_themes2.Themes(app, app_identifier="testing")
+
+        with app.test_request_context("/"):
+            url = flask_themes2.static_file_url
+            assert url("partial", "own.css") == "/_themes/partial/own.css"
+            assert url("partial", "shared.css") == "/static/shared.css"
+            assert url("partial", "shared.css", fallback=False) == (
+                "/_themes/partial/shared.css"
+            )
+
+    def test_static_file_url_falls_back_with_static_folder(self, tmp_path):
+        make_theme(tmp_path / "themes", "partial", "")
+        shared = tmp_path / "shared"
+        (shared / "partial").mkdir(parents=True)
+        (shared / "partial" / "own.css").write_text("")
+        app_static = tmp_path / "static"
+        app_static.mkdir()
+        app = Flask(__name__, static_folder=str(app_static))
+        app.config["THEME_PATHS"] = [str(tmp_path / "themes")]
+        flask_themes2.Themes(app, app_identifier="testing", static_folder=str(shared))
+
+        with app.test_request_context("/"):
+            url = flask_themes2.static_file_url
+            assert url("partial", "own.css") == "/static/_themes/partial/own.css"
+            assert url("partial", "shared.css") == "/static/shared.css"
+
+    def test_static_exists_caches_lookups(self, tmp_path):
+        theme_path = make_theme(tmp_path, "partial", "")
+        app_static = tmp_path / "static"
+        app_static.mkdir()
+        app = Flask(__name__, static_folder=str(app_static))
+        app.config["THEME_PATHS"] = [str(tmp_path)]
+        flask_themes2.Themes(app, app_identifier="testing")
+
+        with app.test_request_context("/"):
+            assert not app.jinja_env.auto_reload
+            url = flask_themes2.static_file_url
+            assert url("partial", "late.css") == "/static/late.css"
+            (theme_path / "static" / "late.css").write_text("")
+            assert url("partial", "late.css") == "/static/late.css"
+            flask_themes2.get_theme_manager(app).refresh()
+            assert url("partial", "late.css") == "/_themes/partial/late.css"
+
+    def test_theme_static_global_falls_back(self, tmp_path):
+        make_theme(
+            tmp_path,
+            "partial",
+            "{{ theme_static('shared.css') }} "
+            "{{ theme_static('shared.css', fallback=false) }}",
+        )
+        app_static = tmp_path / "static"
+        app_static.mkdir()
+        app = Flask(__name__, static_folder=str(app_static))
+        app.config["THEME_PATHS"] = [str(tmp_path)]
+        flask_themes2.Themes(app, app_identifier="testing")
+
+        with app.test_request_context("/"):
+            assert flask_themes2.render_theme_template("partial", "hello.html") == (
+                "/static/shared.css /_themes/partial/shared.css"
+            )
 
 
 class TestTemplates:
@@ -215,7 +309,7 @@ class TestTemplates:
         with app.test_request_context("/"):
             calls = count_loader_lookups(app, monkeypatch)
             assert not flask_themes2.template_exists("_themes/plain/hello.html")
-            app.theme_manager.refresh()
+            flask_themes2.get_theme_manager(app).refresh()
             assert not flask_themes2.template_exists("_themes/plain/hello.html")
             assert calls == ["_themes/plain/hello.html"] * 2
 
@@ -234,7 +328,7 @@ class TestTemplates:
             assert render() == "Before"
             (theme_path / "templates" / "hello.html").write_text("After")
             assert render() == "Before"
-            app.theme_manager.refresh()
+            flask_themes2.get_theme_manager(app).refresh()
             assert render() == "After"
 
     def test_resolve_template(self):
@@ -243,7 +337,7 @@ class TestTemplates:
         flask_themes2.Themes(app, app_identifier="testing")
 
         with app.test_request_context("/"):
-            manager = app.theme_manager
+            manager = flask_themes2.get_theme_manager(app)
             cool = manager.themes["cool"]
             assert manager.get_template("cool", "hello.html") == (
                 "_themes/cool/hello.html"
