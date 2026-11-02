@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -469,6 +469,7 @@ wheels = [
 [[package]]
 name = "flask-themes2"
 source = { editable = "." }
+default-groups = ["dev", "pre-commit", "tests", "typing"]
 dependencies = [
     { name = "flask" },
 ]
@@ -513,7 +514,7 @@ typing = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "flask", specifier = ">=2.0" }]
+requires-dist = [{ name = "flask", specifier = ">=2.3" }]
 
 [package.metadata.requires-dev]
 dev = [

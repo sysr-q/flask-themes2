@@ -171,14 +171,8 @@ class TestSetup:
             tl = flask_themes2.get_themes_list()
             assert tl[0] is cool
             assert tl[1] is plain
-            try:
+            with pytest.raises(KeyError):
                 flask_themes2.get_theme("notthis")
-            except KeyError:
-                pass
-            else:
-                raise AssertionError(
-                    "Getting a nonexistent theme should raise KeyError"
-                )
 
 
 class TestStatic:
@@ -456,14 +450,8 @@ class TestTemplates:
         flask_themes2.Themes(app, app_identifier="testing")
 
         with app.test_request_context("/"):
-            try:
+            with pytest.raises(RuntimeError):
                 render_template("static.html")
-            except RuntimeError:
-                pass
-            else:
-                raise AssertionError(
-                    "Rendering static.html should have caused a RuntimeError"
-                )
 
     def test_theme_include_static(self):
         app = Flask(__name__)

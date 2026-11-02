@@ -17,7 +17,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "flask>=2.0",
+    "flask>=2.3",
 ]
 dynamic = ["version"]
 

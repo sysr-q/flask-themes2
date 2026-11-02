@@ -10,7 +10,7 @@ Flask-Themes2 is a fork of Spirits, which is in turn a fork of Flask-Themes.
 - [Flask-Themes](https://bitbucket.org/leafstorm/flask-themes) by Matthew "LeafStorm" Frazier
 - [Many more contributors](CONTRIBUTORS.md) to this fork and all others! It wouldn't be this good without you.
 
-This provides infrastructure for themes in Flask >= 2.0.
+This provides infrastructure for themes in Flask >= 2.3 on Python >= 3.11.
 
 > [!NOTE]
 > Flask-Themes2 2.x requires Python 3.11 or newer.

@@ -24,7 +24,6 @@ import itertools
 import logging
 import os
 import re
-from collections.abc import Container
 
 # Yarg, here be pirates!
 from operator import attrgetter
@@ -64,15 +63,27 @@ if TYPE_CHECKING:
 
 __version__ = "2.0.0"
 
+__all__ = [
+    "Theme",
+    "ThemeManager",
+    "Themes",
+    "get_theme",
+    "get_theme_manager",
+    "get_theme_template_name",
+    "get_themes_list",
+    "load_themes_from",
+    "packaged_themes_loader",
+    "render_theme_template",
+    "static_file_url",
+    "template_exists",
+    "theme_paths_loader",
+]
+
 _T = TypeVar("_T")
 
 IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 _logger = logging.getLogger(__name__)
-
-
-def containable(i: Iterable[_T]) -> Container[_T]:
-    return i if isinstance(i, Container) else tuple(i)
 
 
 def starchain(i: Iterable[Iterable[_T]]) -> Iterator[_T]:
@@ -329,13 +340,14 @@ def packaged_themes_loader(app: Flask) -> Iterable[Theme]:
 def theme_paths_loader(app: Flask) -> Iterable[Theme]:
     """
     This checks the app's `THEME_PATHS` configuration variable to find
-    directories that contain themes. The theme's identifier must match the
-    name of its directory.
+    directories that contain themes. It is a list of paths, or a single
+    string of paths separated by `os.pathsep`. The theme's identifier must
+    match the name of its directory.
     """
     theme_paths: Iterable[str | os.PathLike[str]] = app.config.get("THEME_PATHS", ())
 
     if isinstance(theme_paths, str):
-        theme_paths = [p.strip() for p in theme_paths.split(";")]
+        theme_paths = [p.strip() for p in theme_paths.split(os.pathsep)]
     return starchain(load_themes_from(path) for path in theme_paths)
 
 
@@ -650,7 +662,7 @@ class Theme:
         #: path.
         self.path = os.path.abspath(path)
 
-        with open(os.path.join(self.path, "info.json")) as fd:
+        with open(os.path.join(self.path, "info.json"), encoding="utf-8") as fd:
             i: dict[str, Any] = json.load(fd)
 
         #: The raw contents of the theme's info.json.
@@ -734,7 +746,7 @@ class Theme:
         """
         lt_path = os.path.join(self.path, "license.txt")
         if os.path.exists(lt_path):
-            with open(lt_path) as fd:
+            with open(lt_path, encoding="utf-8") as fd:
                 return fd.read()
         else:
             return None
