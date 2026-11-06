@@ -12,4 +12,5 @@ Unreleased
 - Themes with an unreadable `info.json` or a mismatching identifier are skipped with a logged warning instead of silently.
 - A `THEME_PATHS` string is split on `os.pathsep` instead of `;`.
 - `info.json` and `license.txt` are read as UTF-8.
+- `app.theme_manager` is deprecated and will be removed in the next major release, use `get_theme_manager()` or `app.extensions["themes"]`.
 - Requires Flask >= 2.3

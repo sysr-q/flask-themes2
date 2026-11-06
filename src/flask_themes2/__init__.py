@@ -27,15 +27,20 @@ import re
 import warnings
 
 # Yarg, here be pirates!
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Iterator
 from operator import attrgetter
 from typing import Any
 from typing import cast
 from typing import TYPE_CHECKING
+from typing import TypeAlias
 from typing import TypeVar
 
 from flask import abort
 from flask import Blueprint
 from flask import current_app
+from flask import Flask
 from flask import json
 from flask import render_template
 from flask import send_from_directory
@@ -48,24 +53,20 @@ from werkzeug.security import safe_join
 from werkzeug.utils import cached_property
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from collections.abc import Iterable
-    from collections.abc import Iterator
-
-    from flask import Flask
     from flask import Response
     from jinja2 import Environment
     from jinja2.runtime import Context
 
-    #: A theme loader is a callable that takes an app and returns an iterable
-    #: of the `Theme` instances it could find for it.
-    ThemeLoader = Callable[[Flask], Iterable["Theme"]]
+#: A theme loader is a callable that takes an app and returns an iterable
+#: of the `Theme` instances it could find for it.
+ThemeLoader: TypeAlias = Callable[[Flask], Iterable["Theme"]]
 
 
 __version__ = "2.1.0.dev0"
 
 __all__ = [
     "Theme",
+    "ThemeLoader",
     "ThemeManager",
     "Themes",
     "get_theme",
@@ -85,6 +86,23 @@ _T = TypeVar("_T")
 IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 _logger = logging.getLogger(__name__)
+
+THEME_INFO_ATTRIBUTES = frozenset(
+    {
+        "name",
+        "application",
+        "identifier",
+        "description",
+        "localized_desc",
+        "author",
+        "license",
+        "license_url",
+        "website",
+        "preview",
+        "doctype",
+        "version",
+    }
+)
 
 
 def starchain(i: Iterable[Iterable[_T]]) -> Iterator[_T]:
@@ -140,14 +158,12 @@ def global_theme_static(
 @pass_context
 def global_theme_get_info(ctx: Context, attribute_name: str, fallback: Any = "") -> Any:
     theme = get_theme(active_theme(ctx))
-    try:
-        info = getattr(theme, attribute_name)
-        if info is None:
-            raise AttributeError(f"Got None for getattr(theme, '{attribute_name}')")
-        return info
-    except AttributeError:
-        pass
-    return theme.options.get(attribute_name, fallback)
+    value = None
+    if attribute_name in THEME_INFO_ATTRIBUTES:
+        value = getattr(theme, attribute_name)
+    if value is None:
+        return theme.options.get(attribute_name, fallback)
+    return value
 
 
 def static_file_url(
@@ -744,6 +760,9 @@ class Theme:
         #: Any additional options. These are entirely application-specific,
         #: and may determine other aspects of the application's behavior.
         self.options: dict[str, Any] = i.get("options", {})
+
+    def __repr__(self) -> str:
+        return f"<Theme {self.identifier!r} path={self.path!r}>"
 
     @cached_property
     def static_path(self) -> str:

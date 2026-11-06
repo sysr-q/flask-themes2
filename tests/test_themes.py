@@ -61,6 +61,10 @@ class TestThemeObject:
         assert cool.license_text is None
         assert isinstance(cool.jinja_loader, FileSystemLoader)
 
+    def test_repr(self):
+        cool = flask_themes2.Theme(os.path.join(TESTS, "morethemes", "cool"))
+        assert repr(cool) == f"<Theme 'cool' path={cool.path!r}>"
+
     def test_license_text(self):
         path = os.path.join(TESTS, "themes", "plain")
         plain = flask_themes2.Theme(path)
@@ -68,6 +72,15 @@ class TestThemeObject:
 
 
 class TestLoaders:
+    def test_theme_loader_is_importable(self):
+        from flask_themes2 import ThemeLoader
+
+        def instance_loader(app: Flask) -> list[flask_themes2.Theme]:
+            return []
+
+        loader: ThemeLoader = instance_loader
+        assert loader(Flask(__name__)) == []
+
     def test_load_themes_from(self):
         path = os.path.join(TESTS, "themes")
         themes_iter = flask_themes2.load_themes_from(path)
@@ -182,6 +195,40 @@ class TestSetup:
             assert tl[1] is plain
             with pytest.raises(KeyError):
                 flask_themes2.get_theme("notthis")
+
+
+class TestThemeGetInfo:
+    def make_app(self, tmp_path):
+        theme_path = make_theme(tmp_path, "info", "")
+        info_json = theme_path / "info.json"
+        info = json.loads(info_json.read_text())
+        info["options"] = {"accent": "blue", "name": "from options"}
+        info_json.write_text(json.dumps(info))
+        app = Flask(__name__)
+        app.config["THEME_PATHS"] = [str(tmp_path)]
+        flask_themes2.Themes(app, app_identifier="testing")
+        return app
+
+    def get_info(self, app, name, fallback=""):
+        template = app.jinja_env.from_string("{{ theme_get_info(name, fallback) }}")
+        with app.test_request_context("/"):
+            return template.render(_theme="info", name=name, fallback=fallback)
+
+    def test_metadata_before_options(self, tmp_path):
+        app = self.make_app(tmp_path)
+        assert self.get_info(app, "name") == "Info"
+        assert self.get_info(app, "doctype") == "html5"
+
+    def test_options_when_metadata_is_missing(self, tmp_path):
+        app = self.make_app(tmp_path)
+        assert self.get_info(app, "accent") == "blue"
+        assert self.get_info(app, "version") == ""
+        assert self.get_info(app, "version", "unknown") == "unknown"
+
+    def test_other_attributes_are_not_exposed(self, tmp_path):
+        app = self.make_app(tmp_path)
+        assert self.get_info(app, "path") == ""
+        assert self.get_info(app, "jinja_loader") == ""
 
 
 class TestStatic:

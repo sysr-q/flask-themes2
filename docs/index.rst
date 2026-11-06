@@ -371,4 +371,6 @@ Loading Themes
 
 .. autofunction:: theme_paths_loader
 
+.. autodata:: ThemeLoader
+
 .. autofunction:: load_themes_from
