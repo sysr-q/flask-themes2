@@ -86,6 +86,13 @@ own URL:
 
     <link rel=stylesheet href="{{ theme_static('style.css', fallback=false) }}">
 
+Any other keyword arguments are passed on to `~flask.url_for`, so you can
+append a cache buster:
+
+.. sourcecode:: html+jinja
+
+    <link rel=stylesheet href="{{ theme_static('style.css', v=3) }}">
+
 If you want to get information about the currently active theme, you can do
 that with the `theme_get_info` function:
 

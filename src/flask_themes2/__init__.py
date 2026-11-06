@@ -127,10 +127,14 @@ def global_theme_template(
 
 @pass_context
 def global_theme_static(
-    ctx: Context, filename: str, external: bool = False, fallback: bool = True
+    ctx: Context,
+    filename: str,
+    external: bool = False,
+    fallback: bool = True,
+    **values: Any,
 ) -> str:
     theme = active_theme(ctx)
-    return static_file_url(theme, filename, external, fallback)
+    return static_file_url(theme, filename, external, fallback, **values)
 
 
 @pass_context
@@ -147,7 +151,11 @@ def global_theme_get_info(ctx: Context, attribute_name: str, fallback: Any = "")
 
 
 def static_file_url(
-    theme: Theme | str, filename: str, external: bool = False, fallback: bool = True
+    theme: Theme | str,
+    filename: str,
+    external: bool = False,
+    fallback: bool = True,
+    **values: Any,
 ) -> str:
     """
     This is a shortcut for getting the URL of a static file in a theme.
@@ -159,6 +167,9 @@ def static_file_url(
     :param fallback: Whether to return the URL of the application's static
                      file of the same name when the theme does not have the
                      file. Defaults to `True`.
+    :param values: Extra values passed on to `~flask.url_for`. Values the
+                   static endpoint does not use become query arguments, which
+                   makes cache busting like ``v=3`` possible.
     """
     if isinstance(theme, Theme):
         theme = theme.identifier
@@ -172,13 +183,14 @@ def static_file_url(
         and current_app.has_static_folder
         and not manager.static_exists(theme, filename)
     ):
-        return url_for("static", filename=filename, _external=external)
+        return url_for("static", filename=filename, _external=external, **values)
 
     if manager.static_folder:
         return url_for(
             "_themes.static",
             filename=theme + "/" + filename,
             _external=external,
+            **values,
         )
     else:
         return url_for(
@@ -186,6 +198,7 @@ def static_file_url(
             themeid=theme,
             filename=filename,
             _external=external,
+            **values,
         )
 
 

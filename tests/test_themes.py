@@ -195,6 +195,41 @@ class TestStatic:
             genurl = url_for("_themes.static", themeid="cool", filename="style.css")
             assert url == genurl
 
+    def test_static_file_url_passes_values_to_url_for(self):
+        app = Flask(__name__)
+        app.config["THEME_PATHS"] = [os.path.join(TESTS, "morethemes")]
+        flask_themes2.Themes(app, app_identifier="testing")
+
+        with app.test_request_context("/"):
+            url = flask_themes2.static_file_url("cool", "style.css", v=3)
+            genurl = url_for("_themes.static", themeid="cool", filename="style.css")
+            assert url == f"{genurl}?v=3"
+
+    def test_static_file_url_passes_values_when_falling_back(self, tmp_path):
+        theme_path = make_theme(tmp_path, "partial", "")
+        (theme_path / "static" / "own.css").write_text("")
+        static_folder = tmp_path / "static"
+        static_folder.mkdir()
+        (static_folder / "app.css").write_text("")
+        app = Flask(__name__, static_folder=str(static_folder))
+        app.config["THEME_PATHS"] = [str(tmp_path)]
+        flask_themes2.Themes(app, app_identifier="testing")
+
+        with app.test_request_context("/"):
+            url = flask_themes2.static_file_url("partial", "app.css", v=3)
+            assert url == url_for("static", filename="app.css", v=3)
+
+    def test_theme_static_global_passes_values_to_url_for(self):
+        app = Flask(__name__)
+        app.config["THEME_PATHS"] = [os.path.join(TESTS, "morethemes")]
+        flask_themes2.Themes(app, app_identifier="testing")
+
+        with app.test_request_context("/"):
+            url = app.jinja_env.from_string(
+                "{{ theme_static('style.css', v=3) }}"
+            ).render(_theme="cool")
+            assert url == flask_themes2.static_file_url("cool", "style.css", v=3)
+
     def test_static_file_url_falls_back_to_app_static(self, tmp_path):
         theme_path = make_theme(tmp_path, "partial", "")
         (theme_path / "static" / "own.css").write_text("")
