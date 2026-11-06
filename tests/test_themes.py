@@ -134,6 +134,15 @@ class TestSetup:
         assert "theme" in app.jinja_env.globals
         assert "theme_static" in app.jinja_env.globals
 
+    def test_init_themes_is_a_deprecated_alias(self):
+        app = Flask(__name__)
+        app.config["THEME_PATHS"] = [os.path.join(TESTS, "morethemes")]
+        with pytest.warns(DeprecationWarning, match="init_app"):
+            flask_themes2.Themes().init_themes(app, app_identifier="testing")
+
+        assert "_themes" in app.blueprints
+        assert flask_themes2.get_theme_manager(app).app_identifier == "testing"
+
     def test_setup_themes_on_multiple_apps(self, tmp_path):
         (tmp_path / "cool").mkdir()
         (tmp_path / "cool" / "style.css").write_text("")

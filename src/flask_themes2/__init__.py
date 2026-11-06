@@ -24,6 +24,7 @@ import itertools
 import logging
 import os
 import re
+import warnings
 
 # Yarg, here be pirates!
 from operator import attrgetter
@@ -61,7 +62,7 @@ if TYPE_CHECKING:
     ThemeLoader = Callable[[Flask], Iterable["Theme"]]
 
 
-__version__ = "2.0.0"
+__version__ = "2.1.0.dev0"
 
 __all__ = [
     "Theme",
@@ -389,7 +390,7 @@ class ThemeTemplateLoader(BaseLoader):
 
 class _ThemesBlueprint(Blueprint):
     @cached_property
-    def jinja_loader(self) -> BaseLoader:
+    def jinja_loader(self) -> BaseLoader | None:
         return ThemeTemplateLoader(True)
 
 
@@ -404,18 +405,17 @@ class Themes:
 
     def __init__(self, app: Flask | None = None, **kwargs: Any) -> None:
         """
-        If given an app, this will simply call init_themes,
-        and pass through all kwargs to init_themes,
+        If given an app, this will simply call `init_app`,
+        and pass through all kwargs to `init_app`,
         making it super easy.
 
         :param app: the `~flask.Flask` instance to setup themes for.
-        :param kwargs: keyword args to pass through to init_themes
+        :param kwargs: keyword args to pass through to `init_app`
         """
-        self._app: Flask | None = app
         if app is not None:
-            self.init_themes(app, **kwargs)
+            self.init_app(app, **kwargs)
 
-    def init_themes(
+    def init_app(
         self,
         app: Flask,
         loaders: Iterable[ThemeLoader] | None = None,
@@ -444,9 +444,9 @@ class Themes:
             manager_cls = ThemeManager
         manager_cls(app, app_identifier, loaders=loaders, static_folder=static_folder)
 
-        app.jinja_env.globals["theme"] = global_theme_template
-        app.jinja_env.globals["theme_static"] = global_theme_static
-        app.jinja_env.globals["theme_get_info"] = global_theme_get_info
+        app.jinja_env.globals["theme"] = global_theme_template  # type: ignore[invalid-assignment]
+        app.jinja_env.globals["theme_static"] = global_theme_static  # type: ignore[invalid-assignment]
+        app.jinja_env.globals["theme_get_info"] = global_theme_get_info  # type: ignore[invalid-assignment]
 
         # A blueprint can only be configured before its first registration,
         # so every app gets its own instead of sharing a module-level one.
@@ -466,6 +466,15 @@ class Themes:
             )
 
         app.register_blueprint(themes_blueprint)
+
+    def init_themes(self, app: Flask, **kwargs: Any) -> None:
+        """Deprecated alias of `init_app`."""
+        warnings.warn(
+            "Themes.init_themes is deprecated, use Themes.init_app instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.init_app(app, **kwargs)
 
 
 class ThemeManager:

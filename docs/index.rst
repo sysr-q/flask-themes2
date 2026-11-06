@@ -203,9 +203,9 @@ in one of two ways:
     # The second way
     app = Flask(__name__)
     t = Themes()
-    t.init_themes(app, app_identifier="...")
+    t.init_app(app, app_identifier="...")
 
-The first is simply a quicker way of the second, as it will automatically call `init_themes` on your app.
+The first is simply a quicker way of the second, as it will automatically call `init_app` on your app.
 
 This does three things:
 
@@ -222,7 +222,7 @@ This does three things:
 
 Theme Loaders
 -------------
-`init_themes` takes a few arguments, but the one you will probably be using
+`init_app` takes a few arguments, but the one you will probably be using
 most is ``loaders``, which is a list of theme loaders to use (in order) to find
 themes. The default theme loaders are:
 
@@ -311,7 +311,7 @@ renders the template. For example:
    Make sure that you *only* get `Theme` instances from the theme manager. If
    you need to create a `Theme` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
-   load that theme and pass it to `init_themes`, because if the theme is not
+   load that theme and pass it to `init_app`, because if the theme is not
    loaded by the manager, then its templates and static files won't be
    available, which will usually lead to your application breaking.
 
