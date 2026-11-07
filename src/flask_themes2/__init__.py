@@ -473,9 +473,9 @@ class Themes:
             manager_cls = ThemeManager
         manager_cls(app, app_identifier, loaders=loaders, static_folder=static_folder)
 
-        app.jinja_env.globals["theme"] = global_theme_template  # type: ignore[invalid-assignment]
-        app.jinja_env.globals["theme_static"] = global_theme_static  # type: ignore[invalid-assignment]
-        app.jinja_env.globals["theme_get_info"] = global_theme_get_info  # type: ignore[invalid-assignment]
+        app.add_template_global(global_theme_template, "theme")
+        app.add_template_global(global_theme_static, "theme_static")
+        app.add_template_global(global_theme_get_info, "theme_get_info")
 
         # A blueprint can only be configured before its first registration,
         # so every app gets its own instead of sharing a module-level one.
