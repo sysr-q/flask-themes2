@@ -21,20 +21,26 @@ It takes care of:
 from __future__ import annotations
 
 import itertools
+import logging
 import os
 import re
-from collections.abc import Container
+import warnings
 
 # Yarg, here be pirates!
+from collections.abc import Callable
+from collections.abc import Iterable
+from collections.abc import Iterator
 from operator import attrgetter
 from typing import Any
 from typing import cast
 from typing import TYPE_CHECKING
+from typing import TypeAlias
 from typing import TypeVar
 
 from flask import abort
 from flask import Blueprint
 from flask import current_app
+from flask import Flask
 from flask import json
 from flask import render_template
 from flask import send_from_directory
@@ -43,32 +49,60 @@ from jinja2 import pass_context
 from jinja2 import TemplateNotFound
 from jinja2.loaders import BaseLoader
 from jinja2.loaders import FileSystemLoader
+from werkzeug.security import safe_join
 from werkzeug.utils import cached_property
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from collections.abc import Iterable
-    from collections.abc import Iterator
-
-    from flask import Flask
     from flask import Response
     from jinja2 import Environment
     from jinja2.runtime import Context
 
-    #: A theme loader is a callable that takes an app and returns an iterable
-    #: of the `Theme` instances it could find for it.
-    ThemeLoader = Callable[[Flask], Iterable["Theme"]]
+#: A theme loader is a callable that takes an app and returns an iterable
+#: of the `Theme` instances it could find for it.
+ThemeLoader: TypeAlias = Callable[[Flask], Iterable["Theme"]]
 
 
-__version__ = "2.0.0"
+__version__ = "2.1.0.dev0"
+
+__all__ = [
+    "Theme",
+    "ThemeLoader",
+    "ThemeManager",
+    "Themes",
+    "get_theme",
+    "get_theme_manager",
+    "get_theme_template_name",
+    "get_themes_list",
+    "load_themes_from",
+    "packaged_themes_loader",
+    "render_theme_template",
+    "static_file_url",
+    "template_exists",
+    "theme_paths_loader",
+]
 
 _T = TypeVar("_T")
 
 IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
+_logger = logging.getLogger(__name__)
 
-def containable(i: Iterable[_T]) -> Container[_T]:
-    return i if isinstance(i, Container) else tuple(i)
+THEME_INFO_ATTRIBUTES = frozenset(
+    {
+        "name",
+        "application",
+        "identifier",
+        "description",
+        "localized_desc",
+        "author",
+        "license",
+        "license_url",
+        "website",
+        "preview",
+        "doctype",
+        "version",
+    }
+)
 
 
 def starchain(i: Iterable[Iterable[_T]]) -> Iterator[_T]:
@@ -110,25 +144,35 @@ def global_theme_template(
 
 
 @pass_context
-def global_theme_static(ctx: Context, filename: str, external: bool = False) -> str:
+def global_theme_static(
+    ctx: Context,
+    filename: str,
+    external: bool = False,
+    fallback: bool = True,
+    **values: Any,
+) -> str:
     theme = active_theme(ctx)
-    return static_file_url(theme, filename, external)
+    return static_file_url(theme, filename, external, fallback, **values)
 
 
 @pass_context
 def global_theme_get_info(ctx: Context, attribute_name: str, fallback: Any = "") -> Any:
     theme = get_theme(active_theme(ctx))
-    try:
-        info = getattr(theme, attribute_name)
-        if info is None:
-            raise AttributeError(f"Got None for getattr(theme, '{attribute_name}')")
-        return info
-    except AttributeError:
-        pass
-    return theme.options.get(attribute_name, fallback)
+    value = None
+    if attribute_name in THEME_INFO_ATTRIBUTES:
+        value = getattr(theme, attribute_name)
+    if value is None:
+        return theme.options.get(attribute_name, fallback)
+    return value
 
 
-def static_file_url(theme: Theme | str, filename: str, external: bool = False) -> str:
+def static_file_url(
+    theme: Theme | str,
+    filename: str,
+    external: bool = False,
+    fallback: bool = True,
+    **values: Any,
+) -> str:
     """
     This is a shortcut for getting the URL of a static file in a theme.
 
@@ -136,18 +180,33 @@ def static_file_url(theme: Theme | str, filename: str, external: bool = False) -
     :param filename: The name of the file.
     :param external: Whether the link should be external or not. Defaults to
                      `False`.
+    :param fallback: Whether to return the URL of the application's static
+                     file of the same name when the theme does not have the
+                     file. Defaults to `True`.
+    :param values: Extra values passed on to `~flask.url_for`. Values the
+                   static endpoint does not use become query arguments, which
+                   makes cache busting like ``v=3`` possible.
     """
     if isinstance(theme, Theme):
         theme = theme.identifier
 
+    manager = get_theme_manager()
     # raises KeyError if the theme is not loaded
     get_theme(theme)
 
-    if get_theme_manager().static_folder:
+    if (
+        fallback
+        and current_app.has_static_folder
+        and not manager.static_exists(theme, filename)
+    ):
+        return url_for("static", filename=filename, _external=external, **values)
+
+    if manager.static_folder:
         return url_for(
             "_themes.static",
             filename=theme + "/" + filename,
             _external=external,
+            **values,
         )
     else:
         return url_for(
@@ -155,6 +214,7 @@ def static_file_url(theme: Theme | str, filename: str, external: bool = False) -
             themeid=theme,
             filename=filename,
             _external=external,
+            **values,
         )
 
 
@@ -270,13 +330,27 @@ def load_themes_from(path: str | os.PathLike[str]) -> Iterator[Theme]:
     :param path: The path to search for themes in.
     """
     for basename in (b for b in list_folders(path) if IDENTIFIER.match(b)):
+        theme_path = os.path.join(path, basename)
+        if not os.path.isfile(os.path.join(theme_path, "info.json")):
+            continue
         try:
-            t = Theme(os.path.join(path, basename))
-        except:  # noqa: E722, S110
-            pass
-        else:
-            if t.identifier == basename:
-                yield t
+            t = Theme(theme_path)
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            _logger.warning(
+                "Skipping theme %s: cannot read info.json (%s: %s)",
+                theme_path,
+                type(e).__name__,
+                e,
+            )
+            continue
+        if t.identifier != basename:
+            _logger.warning(
+                "Skipping theme %s: identifier %r does not match the folder name",
+                theme_path,
+                t.identifier,
+            )
+            continue
+        yield t
 
 
 def packaged_themes_loader(app: Flask) -> Iterable[Theme]:
@@ -296,13 +370,14 @@ def packaged_themes_loader(app: Flask) -> Iterable[Theme]:
 def theme_paths_loader(app: Flask) -> Iterable[Theme]:
     """
     This checks the app's `THEME_PATHS` configuration variable to find
-    directories that contain themes. The theme's identifier must match the
-    name of its directory.
+    directories that contain themes. It is a list of paths, or a single
+    string of paths separated by `os.pathsep`. The theme's identifier must
+    match the name of its directory.
     """
     theme_paths: Iterable[str | os.PathLike[str]] = app.config.get("THEME_PATHS", ())
 
     if isinstance(theme_paths, str):
-        theme_paths = [p.strip() for p in theme_paths.split(";")]
+        theme_paths = [p.strip() for p in theme_paths.split(os.pathsep)]
     return starchain(load_themes_from(path) for path in theme_paths)
 
 
@@ -344,11 +419,8 @@ class ThemeTemplateLoader(BaseLoader):
 
 class _ThemesBlueprint(Blueprint):
     @cached_property
-    def jinja_loader(self) -> BaseLoader:
+    def jinja_loader(self) -> BaseLoader | None:
         return ThemeTemplateLoader(True)
-
-
-themes_blueprint = _ThemesBlueprint("_themes", __name__)
 
 
 class Themes:
@@ -362,18 +434,17 @@ class Themes:
 
     def __init__(self, app: Flask | None = None, **kwargs: Any) -> None:
         """
-        If given an app, this will simply call init_themes,
-        and pass through all kwargs to init_themes,
+        If given an app, this will simply call `init_app`,
+        and pass through all kwargs to `init_app`,
         making it super easy.
 
         :param app: the `~flask.Flask` instance to setup themes for.
-        :param kwargs: keyword args to pass through to init_themes
+        :param kwargs: keyword args to pass through to `init_app`
         """
-        self._app: Flask | None = app
         if app is not None:
-            self.init_themes(app, **kwargs)
+            self.init_app(app, **kwargs)
 
-    def init_themes(
+    def init_app(
         self,
         app: Flask,
         loaders: Iterable[ThemeLoader] | None = None,
@@ -402,22 +473,37 @@ class Themes:
             manager_cls = ThemeManager
         manager_cls(app, app_identifier, loaders=loaders, static_folder=static_folder)
 
-        app.jinja_env.globals["theme"] = global_theme_template
-        app.jinja_env.globals["theme_static"] = global_theme_static
-        app.jinja_env.globals["theme_get_info"] = global_theme_get_info
+        app.add_template_global(global_theme_template, "theme")
+        app.add_template_global(global_theme_static, "theme_static")
+        app.add_template_global(global_theme_get_info, "theme_get_info")
 
+        # A blueprint can only be configured before its first registration,
+        # so every app gets its own instead of sharing a module-level one.
         if static_folder:
-            themes_blueprint.static_folder = static_folder
-            themes_blueprint.static_url_path = (
-                f"{app.static_url_path or ''}{theme_url_prefix}"
+            themes_blueprint = _ThemesBlueprint(
+                "_themes",
+                __name__,
+                static_folder=static_folder,
+                static_url_path=f"{app.static_url_path or ''}{theme_url_prefix}",
             )
         else:
-            themes_blueprint.url_prefix = theme_url_prefix
+            themes_blueprint = _ThemesBlueprint(
+                "_themes", __name__, url_prefix=theme_url_prefix
+            )
             themes_blueprint.add_url_rule(
                 "/<themeid>/<path:filename>", "static", view_func=static
             )
 
         app.register_blueprint(themes_blueprint)
+
+    def init_themes(self, app: Flask, **kwargs: Any) -> None:
+        """Deprecated alias of `init_app`."""
+        warnings.warn(
+            "Themes.init_themes is deprecated, use Themes.init_app instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.init_app(app, **kwargs)
 
 
 class ThemeManager:
@@ -454,6 +540,7 @@ class ThemeManager:
 
         self._themes: dict[str, Theme] | None = None
         self._template_exists_cache: dict[str, bool] = {}
+        self._static_exists_cache: dict[tuple[str, str], bool] = {}
 
         #: This is a list of the loaders that will be used to load the themes.
         self.loaders: list[ThemeLoader] = []
@@ -508,9 +595,17 @@ class ThemeManager:
         are invoked in the order they are given, so later themes will override
         earlier ones. Any invalid themes found (for example, if the
         application identifier is incorrect) will be skipped.
+
+        The template lookup cache and Jinja's compiled template cache are
+        cleared as well, so templates edited on disk are reloaded even when
+        ``auto_reload`` is off.
         """
         self._themes = self._load_themes()
         self._template_exists_cache.clear()
+        self._static_exists_cache.clear()
+        jinja_cache = self.app.jinja_env.cache
+        if jinja_cache is not None:
+            jinja_cache.clear()
 
     def template_exists(self, templatename: str) -> bool:
         """
@@ -548,11 +643,48 @@ class ThemeManager:
             return themed_name
         return template_name
 
+    def static_exists(self, theme: Theme | str, filename: str) -> bool:
+        """
+        This checks whether the given theme ships ``filename`` in its static
+        files. Lookups are cached like those of `template_exists`: bypassed
+        while the Jinja environment has ``auto_reload`` enabled and cleared
+        by `refresh`.
+
+        :param theme: Either the identifier of the theme or a `Theme`.
+        :param filename: The static file's name, relative to the theme's
+                         static folder.
+        """
+        if isinstance(theme, Theme):
+            theme = theme.identifier
+        if self.app.jinja_env.auto_reload:
+            return self._static_file_exists(theme, filename)
+        cache = self._static_exists_cache
+        key = (theme, filename)
+        try:
+            return cache[key]
+        except KeyError:
+            exists = cache[key] = self._static_file_exists(theme, filename)
+            return exists
+
+    def _static_file_exists(self, theme: str, filename: str) -> bool:
+        if self.static_folder:
+            path = safe_join(self.static_folder, theme, filename)
+        else:
+            path = safe_join(self.themes[theme].static_path, filename)
+        return path is not None and os.path.isfile(path)
+
     def _load_themes(self) -> dict[str, Theme]:
         themes: dict[str, Theme] = {}
         for theme in starchain(ldr(self.app) for ldr in self.loaders):
             if self.valid_app_id(theme.application):
                 themes[theme.identifier] = theme
+            else:
+                _logger.debug(
+                    "Skipping theme %s: it is for application %r, not %r",
+                    theme.path,
+                    theme.application,
+                    self.app_identifier,
+                )
         return themes
 
 
@@ -568,7 +700,7 @@ class Theme:
         #: path.
         self.path = os.path.abspath(path)
 
-        with open(os.path.join(self.path, "info.json")) as fd:
+        with open(os.path.join(self.path, "info.json"), encoding="utf-8") as fd:
             i: dict[str, Any] = json.load(fd)
 
         #: The raw contents of the theme's info.json.
@@ -629,6 +761,9 @@ class Theme:
         #: and may determine other aspects of the application's behavior.
         self.options: dict[str, Any] = i.get("options", {})
 
+    def __repr__(self) -> str:
+        return f"<Theme {self.identifier!r} path={self.path!r}>"
+
     @cached_property
     def static_path(self) -> str:
         """
@@ -652,7 +787,7 @@ class Theme:
         """
         lt_path = os.path.join(self.path, "license.txt")
         if os.path.exists(lt_path):
-            with open(lt_path) as fd:
+            with open(lt_path, encoding="utf-8") as fd:
                 return fd.read()
         else:
             return None

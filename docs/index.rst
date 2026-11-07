@@ -77,6 +77,22 @@ function:
 
     <link rel=stylesheet href="{{ theme_static('style.css') }}">
 
+If the theme does not have the file, this returns the URL of the
+application's static file with the same name instead, so a theme only has to
+ship the files it changes. Pass ``fallback=false`` to always get the theme's
+own URL:
+
+.. sourcecode:: html+jinja
+
+    <link rel=stylesheet href="{{ theme_static('style.css', fallback=false) }}">
+
+Any other keyword arguments are passed on to `~flask.url_for`, so you can
+append a cache buster:
+
+.. sourcecode:: html+jinja
+
+    <link rel=stylesheet href="{{ theme_static('style.css', v=3) }}">
+
 If you want to get information about the currently active theme, you can do
 that with the `theme_get_info` function:
 
@@ -194,33 +210,26 @@ in one of two ways:
     # The second way
     app = Flask(__name__)
     t = Themes()
-    t.init_themes(app, app_identifier="...")
+    t.init_app(app, app_identifier="...")
 
-The first is simply a quicker way of the second, as it will automatically call `init_themes` on your app.
+The first is simply a quicker way of the second, as it will automatically call `init_app` on your app.
 
 This does three things:
 
 * Adds a `ThemeManager` instance to your application as
   ``app.extensions["themes"]``.  It is also set as `app.theme_manager`, which is
   kept for backwards compatibility.
-* Registers the ``theme`` and ``theme_static`` globals with the Jinja2
-  environment.
-* Registers the ``_themes`` module or blueprint (depending on the Flask version)
-  to your application, by default with the URL prefix ``/_themes`` (you can
-  change it).
-
-.. warning::
-
-   Since the "Blueprints" mechanism of Flask 0.7 causes headaches in module
-   compatibility mode, `init_themes` will automatically register ``_themes``
-   as a blueprint and not as a module if possible. If this causes headaches
-   with your application, then you need to either (a) upgrade to Flask 0.7 or
-   (b) set ``Flask<0.7`` in your requirements.txt file.
+* Registers the ``theme``, ``theme_static`` and ``theme_get_info`` globals
+  with the Jinja2 environment.
+* Registers a ``_themes`` blueprint on your application, which serves the
+  themes' static files, by default under the URL prefix ``/_themes`` (you
+  can change it). Each application gets its own blueprint, so you can set up
+  themes on several applications in one process.
 
 
 Theme Loaders
 -------------
-`init_themes` takes a few arguments, but the one you will probably be using
+`init_app` takes a few arguments, but the one you will probably be using
 most is ``loaders``, which is a list of theme loaders to use (in order) to find
 themes. The default theme loaders are:
 
@@ -229,6 +238,10 @@ themes. The default theme loaders are:
   with your application)
 * `theme_paths_loader`, which looks at the `THEME_PATHS` configuration
   setting and loads themes from each folder therein
+
+Both ignore folders without an ``info.json``. A folder whose ``info.json``
+cannot be read, or whose ``identifier`` does not match the folder name, is
+skipped with a warning on the ``flask_themes2`` logger.
 
 It's easy to write your own loaders, though - a loader is just a callable that
 takes an application instance and returns an iterable of `Theme` instances.
@@ -251,7 +264,8 @@ Rendering Templates
 Once you have the themes set up, you can call in to the theme machinery with
 `render_theme_template`. It works like `render_template`, but takes a ``theme``
 parameter before the template name. Also, `static_file_url` will generate a
-URL to the given static file.
+URL to the given static file, falling back to the application's static file
+when the theme does not have it.
 
 When you call `render_theme_template`, it sets the "active template" to the
 given theme, even if you have to fall back to rendering the application's
@@ -266,6 +280,16 @@ templates defined by the theme. This way, the theme author doesn't have to
 implement every possible template - they can define templates like the layout,
 and showing posts, and things like that, and the application-provided
 templates can use those building blocks to form the more complicated pages.
+
+Whether a theme provides a template is looked up with `template_exists` and
+the result is cached per application, because Jinja2 only caches templates it
+found and every miss would otherwise walk the loaders of the application and
+all of its blueprints. Static file lookups (`ThemeManager.static_exists`) are
+cached the same way. Both caches are bypassed while the Jinja2 environment
+has ``auto_reload`` enabled (for example in debug mode), so new overrides are
+picked up as you add them. In production, call `ThemeManager.refresh` after
+installing or editing a theme: it reloads the themes and clears the lookup
+caches and Jinja2's compiled template cache.
 
 
 Selecting Themes
@@ -294,7 +318,7 @@ renders the template. For example:
    Make sure that you *only* get `Theme` instances from the theme manager. If
    you need to create a `Theme` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
-   load that theme and pass it to `init_themes`, because if the theme is not
+   load that theme and pass it to `init_app`, because if the theme is not
    loaded by the manager, then its templates and static files won't be
    available, which will usually lead to your application breaking.
 
@@ -325,6 +349,10 @@ This API documentation is automatically generated from the source code.
 
 .. autofunction:: render_theme_template
 
+.. autofunction:: template_exists
+
+.. autofunction:: get_theme_template_name
+
 .. autofunction:: static_file_url
 
 .. autofunction:: get_theme
@@ -342,5 +370,7 @@ Loading Themes
 .. autofunction:: packaged_themes_loader
 
 .. autofunction:: theme_paths_loader
+
+.. autodata:: ThemeLoader
 
 .. autofunction:: load_themes_from
